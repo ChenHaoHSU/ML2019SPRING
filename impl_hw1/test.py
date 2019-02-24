@@ -35,6 +35,9 @@ def write_output(filename, test_y):
 test_file = sys.argv[1]
 output_file = sys.argv[2]
 weight_file = sys.argv[3]
+print('[Info] Test: {}'.format(test_file))
+print('[Info] Output: {}'.format(output_file))
+print('[Info] Weight: {}'.format(weight_file))
 
 test_X = load_test(test_file)
 w = np.load(weight_file)
