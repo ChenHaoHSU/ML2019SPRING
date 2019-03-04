@@ -34,14 +34,13 @@ def write_output(filename, test_id, test_y):
     writer.writeheader()
     for i in range(test_y.shape[0]):
       writer.writerow({'id': test_id[i], 'value': str(test_y[i][0])})
-    print('[Info] Output: {}'.format(filename))
 
 test_file = sys.argv[1]
 output_file = sys.argv[2]
 weight_file = sys.argv[3]
 print('[Info] Test: {}'.format(test_file))
-print('[Info] Output: {}'.format(output_file))
 print('[Info] Weight: {}'.format(weight_file))
+print('[Info] Output: {}'.format(output_file))
 
 test_id, test_X = load_test(test_file)
 w = np.load(weight_file)
