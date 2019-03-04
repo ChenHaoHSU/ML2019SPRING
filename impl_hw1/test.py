@@ -19,9 +19,10 @@ def load_test(filename):
   id_num = test_id.shape[0]
   id_data = np.vsplit(data, id_num)
   X = []
-  duration = 5
+  duration = 9
   for one_id_data in id_data:
-    X.append(one_id_data[:, -duration:].flatten())
+    # X.append(one_id_data[:, -duration:].flatten())
+    X.append(np.array([ one_id_data[i, -duration:] for i in [4,5,6,8,9,12] ]).flatten())
   test_X = np.array(X)
   test_X = np.c_[ test_X, np.ones(test_X.shape[0]) ] # add the bias
   return test_id, test_X

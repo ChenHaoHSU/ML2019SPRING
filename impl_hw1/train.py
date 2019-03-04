@@ -16,13 +16,14 @@ def load_train(filename):
   data[data == 'NR'] = 0.0
   data = data.astype('float')
   X, Y = [], []
-  duration = 5
+  duration = 9
   month_data = np.vsplit(data, 12) # 12 months; 20 days per month
   for one_month_data in month_data:
     hour_data = np.vsplit(one_month_data, 20)
     concat_hour_data = np.concatenate(hour_data, axis=1)
     for i in range(len(concat_hour_data[0])-duration):
-      X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      # X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      X.append(np.array([ concat_hour_data[j, i:i+duration] for j in [4,5,6,8,9,12] ]).flatten()) # previous 9 (duration) hours data
       Y.append([concat_hour_data[9, i+duration]])
   train_X = np.array(X)
   train_y = np.array(Y)
@@ -34,7 +35,7 @@ def ada_grad(train_X, train_y):
   w = np.ones((train_X.shape[1], 1)) # initial weight
   lr = 1.0
   sum_grad = 0.0
-  iteration = 100000
+  iteration = 50000
 
   # iterations
   for i in range(iteration):
