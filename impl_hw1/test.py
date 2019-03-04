@@ -11,25 +11,29 @@ import numpy as np
 import pandas as pd
 
 def load_test(filename):
-  raw_data = pd.read_csv(filename, header=None, encoding='big5').as_matrix()
-  data = raw_data[:, 2:]
+  csv_data = pd.read_csv(filename, header=None, encoding='big5').values
+  test_id = np.array([ csv_data[i][0] for i in range(0, csv_data.shape[0], 18)])
+  data = csv_data[:, 2:]
   data[data == 'NR'] = 0.0
   data = data.astype('float')
-  obs = np.vsplit(data, data.shape[0]/18)
+  id_num = test_id.shape[0]
+  id_data = np.vsplit(data, id_num)
   X = []
-  for i in obs:
-     X.append(i.flatten())
+  duration = 5
+  for one_id_data in id_data:
+    X.append(one_id_data[:, -duration:].flatten())
   test_X = np.array(X)
   test_X = np.c_[ test_X, np.ones(test_X.shape[0]) ] # add the bias
-  return test_X
+  return test_id, test_X
 
-def write_output(filename, test_y):
+def write_output(filename, test_id, test_y):
+  assert test_id.shape[0] == test_y.shape[0]
   with open(filename, 'w') as csvfile:
     fieldnames = ['id', 'value']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     for i in range(test_y.shape[0]):
-      writer.writerow({'id': 'id_{}'.format(i), 'value': str(test_y[i][0])})
+      writer.writerow({'id': test_id[i], 'value': str(test_y[i][0])})
     print('[Info] Output: {}'.format(filename))
 
 test_file = sys.argv[1]
@@ -39,8 +43,8 @@ print('[Info] Test: {}'.format(test_file))
 print('[Info] Output: {}'.format(output_file))
 print('[Info] Weight: {}'.format(weight_file))
 
-test_X = load_test(test_file)
+test_id, test_X = load_test(test_file)
 w = np.load(weight_file)
 test_y = np.dot(test_X, w)
 
-write_output(output_file, test_y)
+write_output(output_file, test_id, test_y)

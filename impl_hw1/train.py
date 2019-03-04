@@ -12,18 +12,18 @@ import numpy as np
 import pandas as pd
 
 def load_train(filename):
-  raw_data = pd.read_csv(filename, encoding='big5').as_matrix()
-  data = raw_data[:, 3:] # 12 months, 20 days per month, 18 features per day. shape: (4320 , 24)
+  data = pd.read_csv(filename, encoding='big5').values[:, 3:]
   data[data == 'NR'] = 0.0
   data = data.astype('float')
   X, Y = [], []
-  for i in range(0, data.shape[0], 18*20):
-      # i: start of each month
-      days = np.vsplit(data[i:i+18*20], 20) # shape: 20 * (18, 24)
-      concat = np.concatenate(days, axis=1) # shape: (18, 480)
-      for j in range(0, concat.shape[1]-9):
-        X.append(concat[:, j:j+9].flatten())
-        Y.append([concat[9, j+9]])
+  duration = 5
+  month_data = np.vsplit(data, 12) # 12 months; 20 days per month
+  for one_month_data in month_data:
+    hour_data = np.vsplit(one_month_data, 20)
+    concat_hour_data = np.concatenate(hour_data, axis=1)
+    for i in range(len(concat_hour_data[0])-duration):
+      X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      Y.append([concat_hour_data[9, i+duration]])
   train_X = np.array(X)
   train_y = np.array(Y)
   train_X = np.c_[ train_X, np.ones(train_X.shape[0]) ] # add the bias
