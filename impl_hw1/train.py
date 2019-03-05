@@ -10,6 +10,7 @@ import sys
 import csv
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 def load_train(filename):
   data = pd.read_csv(filename, encoding='big5').values[:, 3:]
@@ -21,9 +22,11 @@ def load_train(filename):
   for one_month_data in month_data:
     hour_data = np.vsplit(one_month_data, 20)
     concat_hour_data = np.concatenate(hour_data, axis=1)
+    sqrPM25 = np.array([[ a**2 for a in concat_hour_data[9]]])
+    concat_hour_data = np.concatenate((concat_hour_data, sqrPM25), axis=0)
     for i in range(len(concat_hour_data[0])-duration):
-      # X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
-      X.append(np.array([ concat_hour_data[j, i:i+duration] for j in [4,5,6,8,9,12] ]).flatten()) # previous 9 (duration) hours data
+      X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      # X.append(np.array([ concat_hour_data[j, i:i+duration] for j in [2,5,7,8,9,12] ]).flatten()) # previous 9 (duration) hours data
       Y.append([concat_hour_data[9, i+duration]])
   train_X = np.array(X)
   train_y = np.array(Y)
@@ -35,7 +38,7 @@ def ada_grad(train_X, train_y):
   w = np.ones((train_X.shape[1], 1)) # initial weight
   lr = 1.0
   sum_grad = 0.0
-  iteration = 50000
+  iteration = 200000
 
   # iterations
   for i in range(iteration):
@@ -54,5 +57,13 @@ def ada_grad(train_X, train_y):
 train_file = sys.argv[1]
 weight_file = sys.argv[2]
 train_X, train_y = load_train(train_file)
+
+# # use sklearn
+# reg = LinearRegression().fit(train_X, train_y)
+# print(reg.score(train_X, train_y))
+# w = reg.coef_[0]
+
+# handcraft linear regression
 w = ada_grad(train_X, train_y)
+
 np.save(weight_file, w)

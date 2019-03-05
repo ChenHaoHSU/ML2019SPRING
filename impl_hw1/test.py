@@ -21,8 +21,10 @@ def load_test(filename):
   X = []
   duration = 9
   for one_id_data in id_data:
-    # X.append(one_id_data[:, -duration:].flatten())
-    X.append(np.array([ one_id_data[i, -duration:] for i in [4,5,6,8,9,12] ]).flatten())
+    sqrPM25 = [[ a**2 for a in one_id_data[9]]]
+    one_id_data = np.concatenate((one_id_data, sqrPM25))
+    X.append(one_id_data[:, -duration:].flatten())
+    # X.append(np.array([ one_id_data[i, -duration:] for i in [2,5,7,8,9,12] ]).flatten())
   test_X = np.array(X)
   test_X = np.c_[ test_X, np.ones(test_X.shape[0]) ] # add the bias
   return test_id, test_X
