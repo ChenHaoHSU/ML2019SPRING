@@ -23,8 +23,8 @@ def load_test(filename):
   for one_id_data in id_data:
     sqrTerms = [ [ a**2 for a in one_id_data[b]] for b in [9] ]
     one_id_data = np.concatenate((one_id_data, sqrTerms))
-    # X.append(one_id_data[:, -duration:].flatten())
-    X.append(np.array([ one_id_data[i, -duration:] for i in [9] ]).flatten())
+    X.append(one_id_data[:, -duration:].flatten())
+    # X.append(np.array([ one_id_data[i, -duration:] for i in [9] ]).flatten())
   test_X = np.array(X)
   test_X = np.c_[ test_X, np.ones(test_X.shape[0]) ] # add the bias
   return test_id, test_X

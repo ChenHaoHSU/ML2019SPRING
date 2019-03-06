@@ -25,8 +25,8 @@ def load_train(filename):
     sqrTerms = np.array([ [a**2 for a in concat_hour_data[b]] for b in [9] ])
     concat_hour_data = np.concatenate((concat_hour_data, sqrTerms), axis=0)
     for i in range(len(concat_hour_data[0])-duration):
-      # X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
-      X.append(np.array([ concat_hour_data[j, i:i+duration] for j in [9] ]).flatten()) # previous 9 (duration) hours data
+      X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      # X.append(np.array([ concat_hour_data[j, i:i+duration] for j in [9] ]).flatten()) # previous 9 (duration) hours data
       Y.append([concat_hour_data[9, i+duration]])
   train_X = np.array(X)
   train_y = np.array(Y)
