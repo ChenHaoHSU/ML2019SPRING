@@ -1,5 +1,5 @@
 ##############################################################
-# Filename   [ train.py ]
+# Filename   [ train_best.py ]
 # Synopsis   [ Implementation of Linear Regression,
 #              Output a weight file (.npy) ]
 # Author     [ Chen-Hao Hsu ]
@@ -22,8 +22,11 @@ def load_train(filename):
   for one_month_data in month_data:
     hour_data = np.vsplit(one_month_data, 20)
     concat_hour_data = np.concatenate(hour_data, axis=1)
+    sqrTerms = np.array([ [a**2 for a in concat_hour_data[b]] for b in [9] ])
+    concat_hour_data = np.concatenate((concat_hour_data, sqrTerms), axis=0)
     for i in range(len(concat_hour_data[0])-duration):
-      X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      # X.append(concat_hour_data[:, i:i+duration].flatten()) # previous 9 (duration) hours data
+      X.append(np.array([ concat_hour_data[j, i:i+duration] for j in [9] ]).flatten()) # previous 9 (duration) hours data
       Y.append([concat_hour_data[9, i+duration]])
   train_X = np.array(X)
   train_y = np.array(Y)
@@ -54,6 +57,11 @@ def ada_grad(train_X, train_y):
 train_file = sys.argv[1]
 weight_file = sys.argv[2]
 train_X, train_y = load_train(train_file)
+
+# # use sklearn
+# reg = LinearRegression().fit(train_X, train_y)
+# print(reg.score(train_X, train_y))
+# w = reg.coef_[0]
 
 # handcraft linear regression
 w = ada_grad(train_X, train_y)
