@@ -10,7 +10,6 @@ import sys
 import csv
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
 
 def load_train(filename):
   data = pd.read_csv(filename, encoding='big5').values[:, 3:]
@@ -38,7 +37,7 @@ def ada_grad(train_X, train_y):
   w = np.ones((train_X.shape[1], 1)) # initial weight
   lr = 1.0
   sum_grad = 0.0
-  iteration = 100000
+  iteration = 200000
 
   # iterations
   for i in range(iteration):
@@ -57,11 +56,6 @@ def ada_grad(train_X, train_y):
 train_file = sys.argv[1]
 weight_file = sys.argv[2]
 train_X, train_y = load_train(train_file)
-
-# # use sklearn
-# reg = LinearRegression().fit(train_X, train_y)
-# print(reg.score(train_X, train_y))
-# w = reg.coef_[0]
 
 # handcraft linear regression
 w = ada_grad(train_X, train_y)
