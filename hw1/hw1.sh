@@ -1,2 +1,2 @@
 #!/bin/sh
-python3 test.py $1 $2 weight.npy
+python3 test.py $1 $2 model/weight.npy
