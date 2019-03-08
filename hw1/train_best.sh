@@ -1,2 +1,2 @@
 #!/bin/sh
-python3 train_best.py $1 weight_best.npy
+python3 train_best.py $1 model/weight_best.npy
