@@ -121,12 +121,12 @@ from keras.utils import np_utils, to_categorical
 Y_train = to_categorical(Y_train)
 
 model = Sequential()
-model.add(Dense(input_dim=X_train.shape[1], units=106, activation='relu'))
+model.add(Dense(input_dim=X_train.shape[1], units=500, activation='relu'))
 for i in range(10):
-    model.add(Dense(units=106, activation='relu'))
+    model.add(Dense(units=500, activation='relu'))
 model.add(Dense(units=2, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-model.fit(X_train, Y_train, batch_size=100, epochs=20)
+model.fit(X_train, Y_train, batch_size=100, epochs=50)
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
 
