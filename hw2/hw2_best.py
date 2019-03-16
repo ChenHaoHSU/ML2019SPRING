@@ -112,88 +112,34 @@ def accuracy(Y_pred, Y_label):
     return acc
 
 ### [10]
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation
+from keras.layers import Conv2D, MaxPooling2D, Flatten
+from keras.optimizers import SGD, Adam
+from keras.utils import np_utils, to_categorical
 
-### [11]
-def train(X_train, Y_train):
-    # split a validation set
-    dev_size = 0.01
-    X_train, Y_train, X_dev, Y_dev = train_dev_split(X_train, Y_train, dev_size = dev_size)
-    
-    # Use 0 + 0*x1 + 0*x2 + ... for weight initialization
-    w = np.zeros((X_train.shape[1],)) 
-    b = np.zeros((1,))
+Y_train = to_categorical(Y_train)
 
-    regularize = True
-    if regularize:
-        lamda = 0.001
-    else:
-        lamda = 0
-    
-    max_iter = 300 # max iteration number
-    batch_size = 1 # number to feed in the model for average to avoid bias
-    learning_rate = 0.8  # how much the model learn for each step
-    num_train = len(Y_train)
-    num_dev = len(Y_dev)
-    step = 1
+print(X_train)
+print(X_train.shape)
+print(Y_train)
+print(Y_train.shape)
 
-    loss_train = []
-    loss_validation = []
-    train_acc = []
-    dev_acc = []
-    
-    for epoch in range(max_iter):
-        print('iteration {} ({:2.2f}%)'.format(epoch, ((epoch+1)/max_iter*100)))
-        # Random shuffle for each epoch
-        X_train, Y_train = _shuffle(X_train, Y_train)
-        
-        total_loss = 0.0
-        # Logistic regression train with batch
-        for idx in range(int(np.floor(len(Y_train)/batch_size))):
-            X = X_train[idx*batch_size:(idx+1)*batch_size]
-            Y = Y_train[idx*batch_size:(idx+1)*batch_size]
-            
-            # Find out the gradient of the loss
-            w_grad, b_grad = _gradient_regularization(X, Y, w, b, lamda)
-            
-            # gradient descent update
-            # learning rate decay with time
-            w = w - learning_rate/np.sqrt(step) * w_grad
-            b = b - learning_rate/np.sqrt(step) * b_grad
+model = Sequential()
+model.add(Dense(input_dim=X_train.shape[1], units=500, activation='relu'))
+model.add(Dense(units=500, activation='relu'))
+model.add(Dense(units=500, activation='relu'))
+model.add(Dense(units=2, activation='softmax'))
 
-            step = step+1
-            
-        # Compute the loss and the accuracy of the training set and the validation set
-        y_train_pred = get_prob(X_train, w, b)
-        Y_train_pred = np.round(y_train_pred)
-        train_acc.append(accuracy(Y_train_pred, Y_train))
-        loss_train.append(_loss(y_train_pred, Y_train, lamda, w)/num_train)
-        
-        y_dev_pred = get_prob(X_dev, w, b)
-        Y_dev_pred = np.round(y_dev_pred)
-        dev_acc.append(accuracy(Y_dev_pred, Y_dev))
-        loss_validation.append(_loss(y_dev_pred, Y_dev, lamda, w)/num_dev)
-    
-    return w, b, loss_train, loss_validation, train_acc, dev_acc  # return loss for plotting
+model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.4), metrics=['accuracy'])
 
-### [12]
-import matplotlib.pyplot as plt
-# %matplotlib inline
+model.fit(X_train, Y_train, batch_size=100, epochs=2)
 
-### [13]
-# return loss is to plot the result
-w, b, loss_train, loss_validation, train_acc, dev_acc= train(X_train, Y_train)
+result = model.evaluate(X_train, Y_train)
 
-### [14]
-plt.plot(loss_train)
-plt.plot(loss_validation)
-plt.legend(['train', 'dev'])
-plt.show()
+print('\nTrain Acc: {}', result[1])
+print(result[0])
 
-### [15]
-plt.plot(train_acc)
-plt.plot(dev_acc)
-plt.legend(['train', 'dev'])
-plt.show()
 
 ### [16]
 X_test = np.genfromtxt(X_test_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
@@ -201,18 +147,12 @@ X_test = np.genfromtxt(X_test_fpath, delimiter=',', skip_header=1, usecols=selec
 X_test, _, _= _normalize_column_normal(X_test, train=False, specified_column = col, X_mean=X_mean, X_std=X_std)
 
 ### [17]
-result = infer(X_test, w, b)
+prediction = model.predict(X_test)
+print(prediction)
 
 ### [18]
 with open(output_fpath, 'w') as f:
         f.write('id,label\n')
-        for i, v in  enumerate(result):
-            f.write('%d,%d\n' %(i+1, v))
+        for i, v in  enumerate(prediction):
+            f.write('%d,%d\n' %(i+1, list(v).index(1)))
 
-### [19]
-ind = np.argsort(np.abs(w))[::-1]
-with open(X_test_fpath) as f:
-    content = f.readline().rstrip('\n')
-features = np.array([x for x in content.split(',')])
-for i in ind[0:10]:
-    print(features[i], w[i])
