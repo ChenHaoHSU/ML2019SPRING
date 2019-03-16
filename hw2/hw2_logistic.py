@@ -129,8 +129,8 @@ def train(X_train, Y_train):
     else:
         lamda = 0
     
-    max_iter = 5000 # max iteration number
-    batch_size = 32 # number to feed in the model for average to avoid bias
+    max_iter = 100 # max iteration number
+    batch_size = 1 # number to feed in the model for average to avoid bias
     learning_rate = 0.8  # how much the model learn for each step
     num_train = len(Y_train)
     num_dev = len(Y_dev)
