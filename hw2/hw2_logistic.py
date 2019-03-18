@@ -12,11 +12,13 @@ selected_columns = None
 X_train = np.genfromtxt(X_train_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
 Y_train = np.genfromtxt(Y_train_fpath, delimiter=',', skip_header=1)
 
-# features = np.genfromtxt(X_train_fpath, delimiter=',', max_rows=1, dtype=str)
-# print(features)
-# print(features.shape)
-# for i in range(features.shape[0]):
-#     print(i, features[i])
+features = np.genfromtxt(X_train_fpath, delimiter=',', max_rows=1, dtype=str)
+print(features)
+print(features.shape)
+for i in range(features.shape[0]):
+    print(i, features[i])
+
+print(X_train.shape)
 
 ### [4]
 def _normalize_column_0_1(X, train=True, specified_column = None, X_min = None, X_max=None):
@@ -41,7 +43,7 @@ def _normalize_column_normal(X, train=True, specified_column = None, X_mean=None
     # The output of the function will make the specified column number to 
     # become a Normal distribution
     # When processing testing data, we need to normalize by the value 
-    # we used for processing training, so we must save the mean value and 
+    # we used for processing training, so we must save the mean value and
     # the variance of the training data
     if train:
         if specified_column == None:
@@ -66,8 +68,9 @@ def train_dev_split(X, y, dev_size=0.25):
 
 ### [7]
 # These are the columns that I want to normalize
-col = [0,1,3,4,5,7,10,12,25,26,27,28]
+col = [0,1,3,4,5]
 X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
+# X_train, X_min, X_max = _normalize_column_0_1(X_train, specified_column=col)
 
 ### [8]
 def _sigmoid(z):
@@ -116,7 +119,7 @@ def accuracy(Y_pred, Y_label):
 ### [11]
 def train(X_train, Y_train):
     # split a validation set
-    dev_size = 0.01
+    dev_size = 0.1
     X_train, Y_train, X_dev, Y_dev = train_dev_split(X_train, Y_train, dev_size = dev_size)
     
     # Use 0 + 0*x1 + 0*x2 + ... for weight initialization
@@ -129,9 +132,9 @@ def train(X_train, Y_train):
     else:
         lamda = 0
     
-    max_iter = 300 # max iteration number
-    batch_size = 1 # number to feed in the model for average to avoid bias
-    learning_rate = 0.8  # how much the model learn for each step
+    max_iter = 1000 # max iteration number
+    batch_size = 50 # number to feed in the model for average to avoid bias
+    learning_rate = 0.5 # how much the model learn for each step
     num_train = len(Y_train)
     num_dev = len(Y_dev)
     step = 1
@@ -142,7 +145,6 @@ def train(X_train, Y_train):
     dev_acc = []
     
     for epoch in range(max_iter):
-        print('iteration {} ({:2.2f}%)'.format(epoch, ((epoch+1)/max_iter*100)))
         # Random shuffle for each epoch
         X_train, Y_train = _shuffle(X_train, Y_train)
         
@@ -160,7 +162,7 @@ def train(X_train, Y_train):
             w = w - learning_rate/np.sqrt(step) * w_grad
             b = b - learning_rate/np.sqrt(step) * b_grad
 
-            step = step+1
+            step = step + 1
             
         # Compute the loss and the accuracy of the training set and the validation set
         y_train_pred = get_prob(X_train, w, b)
@@ -172,6 +174,8 @@ def train(X_train, Y_train):
         Y_dev_pred = np.round(y_dev_pred)
         dev_acc.append(accuracy(Y_dev_pred, Y_dev))
         loss_validation.append(_loss(y_dev_pred, Y_dev, lamda, w)/num_dev)
+
+        print('iteration {} ({:2.2f}%) {:2.4f} {:2.4f}'.format(epoch, ((epoch+1)/max_iter*100), train_acc[-1], dev_acc[-1]))
     
     return w, b, loss_train, loss_validation, train_acc, dev_acc  # return loss for plotting
 
@@ -199,6 +203,7 @@ plt.show()
 X_test = np.genfromtxt(X_test_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
 # Do the same data process to the test data
 X_test, _, _= _normalize_column_normal(X_test, train=False, specified_column = col, X_mean=X_mean, X_std=X_std)
+# X_test, _, _= _normalize_column_0_1(X_test, train=False, specified_column = col, X_min=X_min, X_max=X_max)
 
 ### [17]
 result = infer(X_test, w, b)

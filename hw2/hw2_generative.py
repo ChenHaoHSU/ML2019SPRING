@@ -7,15 +7,14 @@ from numpy.linalg import inv
 ### [2]
 class data_manager():
     def __init__(self):
-        self.data = {}  
+        self.data = {}
     
     def read(self,name,path):
         with open(path,newline = '') as csvfile:
-            rows = np.array(list(csv.reader(csvfile))[1:] ,dtype = float)  
+            rows = np.array(list(csv.reader(csvfile))[1:], dtype=float)
             if name == 'X_train':
-                self.mean = np.mean(rows,axis = 0).reshape(1,-1)
-                self.std = np.std(rows,axis = 0).reshape(1,-1)
-                self.theta = np.ones((rows.shape[1] + 1,1),dtype = float) 
+                self.mean = np.mean(rows, axis=0).reshape(1,-1)
+                self.std = np.std(rows, axis=0).reshape(1,-1)
                 for i in range(rows.shape[0]):
                     rows[i,:] = (rows[i,:] - self.mean) / self.std  
 
@@ -23,7 +22,7 @@ class data_manager():
                 for i in range(rows.shape[0]):
                     rows[i,:] = (rows[i,:] - self.mean) / self.std 
 
-            self.data[name] = rows  
+            self.data[name] = rows
 
     def find_theta(self):
         class_0_id = []
@@ -35,12 +34,13 @@ class data_manager():
                 class_1_id.append(i)
 
         class_0 = self.data['X_train'][class_0_id]
-        class_1 = self.data['X_train'][class_1_id] 
+        class_1 = self.data['X_train'][class_1_id]
 
         mean_0 = np.mean(class_0,axis = 0)
-        mean_1 = np.mean(class_1,axis = 0)  
+        mean_1 = np.mean(class_1,axis = 0)
 
-        n = class_0.shape[1]
+        n = class_0.shape[1] # number of features
+
         cov_0 = np.zeros((n,n))
         cov_1 = np.zeros((n,n))
         
@@ -52,13 +52,14 @@ class data_manager():
 
         cov = (cov_0*class_0.shape[0] + cov_1*class_1.shape[0]) / (class_0.shape[0] + class_1.shape[0])
  
-        self.w = np.transpose(((mean_0 - mean_1)).dot(inv(cov)) )
-        self.b =  (- 0.5)* (mean_0).dot(inv(cov)).dot(mean_0)\
-            + 0.5 * (mean_1).dot(inv(cov)).dot(mean_1)\
-            + np.log(float(class_0.shape[0]) / class_1.shape[0]) 
+        self.w = np.transpose(((mean_0 - mean_1)).dot(inv(cov)))
+        self.b = (-0.5) * (mean_0).dot(inv(cov)).dot(mean_0) \
+               + 0.5 * (mean_1).dot(inv(cov)).dot(mean_1) \
+               + np.log(float(class_0.shape[0]) / class_1.shape[0])
 
         result = self.func(self.data['X_train'])
         answer = self.predict(result)
+        print('\nTrain Acc:', self.accuracy(answer, self.data['Y_train']))
 
     def func(self,x):
         arr = np.empty([x.shape[0],1],dtype=float)
@@ -72,8 +73,17 @@ class data_manager():
         ans = np.ones([x.shape[0],1],dtype=int)
         for i in range(x.shape[0]):
             if x[i] > 0.5:
-                ans[i] = 0;
+                ans[i] = 0
         return ans
+    
+    def accuracy(self,y,y_ground):
+        assert y.shape == y_ground.shape
+        n = y.shape[0]
+        acc = 0
+        for i in range(n):
+            if y[i][0] == y_ground[i][0]:
+                acc += 1
+        return acc / n
 
     def write_file(self,path):
         result = self.func(self.data['X_test'])
