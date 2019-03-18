@@ -66,7 +66,7 @@ def train_dev_split(X, y, dev_size=0.25):
 
 ### [7]
 # These are the columns that I want to normalize
-col = [0,1,3,4,5,7,10,12,25,26,27,28]
+col = [0,1,3,4,5]
 X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
 
 ### [8]
