@@ -43,9 +43,9 @@ def _normalize_column_normal(X, train=True, specified_column = None, X_mean=None
     # When processing testing data, we need to normalize by the value 
     # we used for processing training, so we must save the mean value and 
     # the variance of the training data
+    if specified_column == None:
+        specified_column = np.arange(X.shape[1])
     if train:
-        if specified_column == None:
-            specified_column = np.arange(X.shape[1])
         length = len(specified_column)
         X_mean = np.reshape(np.mean(X[:, specified_column],0), (1, length))
         X_std  = np.reshape(np.std(X[:, specified_column], 0), (1, length))
@@ -67,6 +67,7 @@ def train_dev_split(X, y, dev_size=0.25):
 ### [7]
 # These are the columns that I want to normalize
 col = [0,1,3,4,5]
+col = None
 X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
 
 ### [8]
