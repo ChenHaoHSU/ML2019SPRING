@@ -162,6 +162,9 @@ def train(X_train, Y_train):
             w = w - learning_rate/np.sqrt(step) * w_grad
             b = b - learning_rate/np.sqrt(step) * b_grad
 
+    s_gra += gra**2
+    ada = np.sqrt(s_gra)
+    w = w - lr_rate * gra/ada
             step = step + 1
             
         # Compute the loss and the accuracy of the training set and the validation set

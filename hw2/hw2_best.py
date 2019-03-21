@@ -1,3 +1,8 @@
+import numpy as np
+import csv
+import sys
+
+
 ### [1]
 import numpy as np
 
@@ -11,12 +16,6 @@ output_fpath = sys.argv[4]
 selected_columns = None
 X_train = np.genfromtxt(X_train_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
 Y_train = np.genfromtxt(Y_train_fpath, delimiter=',', skip_header=1)
-
-# features = np.genfromtxt(X_train_fpath, delimiter=',', max_rows=1, dtype=str)
-# print(features)
-# print(features.shape)
-# for i in range(features.shape[0]):
-#     print(i, features[i])
 
 ### [4]
 def _normalize_column_0_1(X, train=True, specified_column = None, X_min = None, X_max=None):
@@ -65,10 +64,6 @@ def train_dev_split(X, y, dev_size=0.25):
     return X[0:train_len], y[0:train_len], X[train_len:None], y[train_len:None]
 
 ### [7]
-# These are the columns that I want to normalize
-col = [0,1,3,4,5]
-col = None
-X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
 
 ### [8]
 def _sigmoid(z):
@@ -109,39 +104,59 @@ def _loss(y_pred, Y_label, lamda, w):
 
 ### [9]
 def accuracy(Y_pred, Y_label):
+    assert Y_pred.shape == Y_label.shape
     acc = np.sum(Y_pred == Y_label)/len(Y_pred)
     return acc
 
-### [10]
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
-from keras.layers import Conv2D, MaxPooling2D, Flatten
-from keras.optimizers import SGD, Adam
-from keras.utils import np_utils, to_categorical
+col = None
+X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
 
-Y_train = to_categorical(Y_train)
-
-model = Sequential()
-model.add(Dense(input_dim=X_train.shape[1], units=500, activation='relu'))
-for i in range(10):
-    model.add(Dense(units=500, activation='relu'))
-model.add(Dense(units=2, activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-model.fit(X_train, Y_train, batch_size=100, epochs=50)
-result = model.evaluate(X_train, Y_train)
-print('\nTrain Acc:', result[1])
-
-### [16]
 X_test = np.genfromtxt(X_test_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
 # Do the same data process to the test data
 X_test, _, _= _normalize_column_normal(X_test, train=False, specified_column = col, X_mean=X_mean, X_std=X_std)
 
-### [17]
-prediction = model.predict(X_test)
+###############################
+# RandomForest
+###############################
+from sklearn.ensemble import RandomForestClassifier
 
-### [18]
+model = RandomForestClassifier(n_estimators=500, max_depth=20, n_jobs=-1)
+model.fit(X_train, Y_train)
+
+train_prediction = model.predict(X_train)
+train_acc = accuracy(train_prediction, Y_train)
+print('Train Acc:', train_acc)
+
+test_prediction = model.predict(X_test)
 with open(output_fpath, 'w') as f:
-        f.write('id,label\n')
-        for i, v in  enumerate(prediction):
-            f.write('%d,%d\n' %(i+1, np.argmax(v)))
+    f.write('id,label\n')
+    for i, v in  enumerate(test_prediction):
+        f.write('%d,%d\n' %(i+1, int(v)))
 
+###############################
+# Keras
+###############################
+# from keras.models import Sequential
+# from keras.layers.core import Dense, Dropout, Activation
+# from keras.layers import Conv2D, MaxPooling2D, Flatten
+# from keras.optimizers import SGD, Adam
+# from keras.utils import np_utils, to_categorical
+
+# Y_train = to_categorical(Y_train)
+
+# model = Sequential()
+# model.add(Dense(input_dim=X_train.shape[1], units=500, activation='relu'))
+# for i in range(10):
+#     model.add(Dense(units=500, activation='relu'))
+# model.add(Dense(units=2, activation='softmax'))
+# model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+# model.fit(X_train, Y_train, batch_size=100, epochs=50)
+# result = model.evaluate(X_train, Y_train)
+# print('\nTrain Acc:', result[1])
+
+# prediction = model.predict(X_test)
+
+# with open(output_fpath, 'w') as f:
+#     f.write('id,label\n')
+#     for i, v in enumerate(prediction):
+#         f.write('%d,%d\n' %(i+1, np.argmax(v)))
