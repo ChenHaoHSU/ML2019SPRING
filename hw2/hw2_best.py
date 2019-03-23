@@ -63,10 +63,6 @@ X_test, _, _= _normalize_column_normal(X_test, train=False, specified_column=col
 # RandomForest
 ###############################
 from sklearn.ensemble import RandomForestClassifier
-import pickle
-import random
-
-random.seed(0)
 
 model = RandomForestClassifier(n_estimators=500, max_depth=20, n_jobs=-1)
 model.fit(X_train, Y_train)
@@ -75,6 +71,7 @@ train_prediction = model.predict(X_train)
 train_acc = accuracy(train_prediction, Y_train)
 print('Train Acc:', train_acc)
 
+# import pickle
 # model_fpath = 'model/model_randomforest.pickle'
 # pickle.dump(model, open(model_fpath, 'wb'))
 
