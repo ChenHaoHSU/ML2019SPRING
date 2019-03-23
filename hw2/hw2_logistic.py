@@ -203,3 +203,12 @@ with open(output_fpath, 'w') as f:
 # features = np.array([x for x in content.split(',')])
 # for i in ind[0:10]:
 #     print(features[i], w[i])
+
+### [20]
+# features = np.genfromtxt(X_train_fpath, delimiter=',', skip_header=0, max_rows=1, dtype=str)
+# feature_weights = []
+# for i in range(features.shape[0]):
+#     feature_weights.append((features[i], w[i]))
+# feature_weights.sort(key=lambda x: x[1])
+# for i in feature_weights:
+#     print(i)
