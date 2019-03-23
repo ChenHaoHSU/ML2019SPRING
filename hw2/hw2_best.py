@@ -71,10 +71,6 @@ train_prediction = model.predict(X_train)
 train_acc = accuracy(train_prediction, Y_train)
 print('Train Acc:', train_acc)
 
-# import pickle
-# model_fpath = 'model/model_randomforest.pickle'
-# pickle.dump(model, open(model_fpath, 'wb'))
-
 test_prediction = model.predict(X_test)
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')

@@ -8,16 +8,6 @@ X_test_fpath = sys.argv[3]
 output_fpath = sys.argv[4]
 
 ### [3]
-selected_columns = None
-X_train = np.genfromtxt(X_train_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
-Y_train = np.genfromtxt(Y_train_fpath, delimiter=',', skip_header=1)
-
-# features = np.genfromtxt(X_train_fpath, delimiter=',', max_rows=1, dtype=str)
-# print(features)
-# print(features.shape)
-# for i in range(features.shape[0]):
-#     print(i, features[i])
-# print(X_train.shape)
 
 ### [4]
 def _normalize_column_0_1(X, train=True, specified_column = None, X_min = None, X_max=None):
@@ -65,12 +55,6 @@ def train_dev_split(X, y, dev_size=0.25):
     train_len = int(round(len(X)*(1-dev_size)))
     return X[0:train_len], y[0:train_len], X[train_len:None], y[train_len:None]
 
-### [7]
-# These are the columns that I want to normalize
-# col = [0,1,3,4,5]
-col = None
-X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
-# X_train, X_min, X_max = _normalize_column_0_1(X_train, specified_column=col)
 
 ### [8]
 def _sigmoid(z):
@@ -113,8 +97,6 @@ def _loss(y_pred, Y_label, lamda, w):
 def accuracy(Y_pred, Y_label):
     acc = np.sum(Y_pred == Y_label)/len(Y_pred)
     return acc
-
-### [10]
 
 ### [11]
 def train(X_train, Y_train):
@@ -162,9 +144,6 @@ def train(X_train, Y_train):
             w = w - learning_rate/np.sqrt(step) * w_grad
             b = b - learning_rate/np.sqrt(step) * b_grad
 
-    s_gra += gra**2
-    ada = np.sqrt(s_gra)
-    w = w - lr_rate * gra/ada
             step = step + 1
             
         # Compute the loss and the accuracy of the training set and the validation set
@@ -182,31 +161,28 @@ def train(X_train, Y_train):
     
     return w, b, loss_train, loss_validation, train_acc, dev_acc  # return loss for plotting
 
-### [12]
-import matplotlib.pyplot as plt
-# %matplotlib inline
-
 ### [13]
-# return loss is to plot the result
+selected_columns = None
+X_train = np.genfromtxt(X_train_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
+Y_train = np.genfromtxt(Y_train_fpath, delimiter=',', skip_header=1)
+col = None
+X_train, X_mean, X_std = _normalize_column_normal(X_train, specified_column=col)
 w, b, loss_train, loss_validation, train_acc, dev_acc= train(X_train, Y_train)
 
-### [14]
-plt.plot(loss_train)
-plt.plot(loss_validation)
-plt.legend(['train', 'dev'])
-plt.show()
-
-### [15]
-plt.plot(train_acc)
-plt.plot(dev_acc)
-plt.legend(['train', 'dev'])
-plt.show()
+### [12] [14] [15]
+# import matplotlib.pyplot as plt
+# plt.plot(loss_train)
+# plt.plot(loss_validation)
+# plt.legend(['train', 'dev'])
+# plt.show()
+# plt.plot(train_acc)
+# plt.plot(dev_acc)
+# plt.legend(['train', 'dev'])
+# plt.show()
 
 ### [16]
 X_test = np.genfromtxt(X_test_fpath, delimiter=',', skip_header=1, usecols=selected_columns)
-# Do the same data process to the test data
 X_test, _, _= _normalize_column_normal(X_test, train=False, specified_column = col, X_mean=X_mean, X_std=X_std)
-# X_test, _, _= _normalize_column_0_1(X_test, train=False, specified_column = col, X_min=X_min, X_max=X_max)
 
 ### [17]
 result = infer(X_test, w, b)
@@ -218,9 +194,9 @@ with open(output_fpath, 'w') as f:
             f.write('%d,%d\n' %(i+1, v))
 
 ### [19]
-ind = np.argsort(np.abs(w))[::-1]
-with open(X_test_fpath) as f:
-    content = f.readline().rstrip('\n')
-features = np.array([x for x in content.split(',')])
-for i in ind[0:10]:
-    print(features[i], w[i])
+# ind = np.argsort(np.abs(w))[::-1]
+# with open(X_test_fpath) as f:
+#     content = f.readline().rstrip('\n')
+# features = np.array([x for x in content.split(',')])
+# for i in ind[0:10]:
+#     print(features[i], w[i])
