@@ -146,18 +146,19 @@ def train(X_train, Y_train):
 
             step = step + 1
             
-        # Compute the loss and the accuracy of the training set and the validation set
-        y_train_pred = get_prob(X_train, w, b)
-        Y_train_pred = np.round(y_train_pred)
-        train_acc.append(accuracy(Y_train_pred, Y_train))
-        loss_train.append(_loss(y_train_pred, Y_train, lamda, w)/num_train)
+        # # Compute the loss and the accuracy of the training set and the validation set
+        # y_train_pred = get_prob(X_train, w, b)
+        # Y_train_pred = np.round(y_train_pred)
+        # train_acc.append(accuracy(Y_train_pred, Y_train))
+        # loss_train.append(_loss(y_train_pred, Y_train, lamda, w)/num_train)
         
-        y_dev_pred = get_prob(X_dev, w, b)
-        Y_dev_pred = np.round(y_dev_pred)
-        dev_acc.append(accuracy(Y_dev_pred, Y_dev))
-        loss_validation.append(_loss(y_dev_pred, Y_dev, lamda, w)/num_dev)
+        # y_dev_pred = get_prob(X_dev, w, b)
+        # Y_dev_pred = np.round(y_dev_pred)
+        # dev_acc.append(accuracy(Y_dev_pred, Y_dev))
+        # loss_validation.append(_loss(y_dev_pred, Y_dev, lamda, w)/num_dev)
 
-        print('iteration {} ({:2.2f}%) {:2.4f} {:2.4f}'.format(epoch, ((epoch+1)/max_iter*100), train_acc[-1], dev_acc[-1]))
+        # print('iteration {} ({:2.2f}%) {:2.4f} {:2.4f}'.format(epoch, ((epoch+1)/max_iter*100), train_acc[-1], dev_acc[-1]))
+        print('iteration {} ({:2.2f}%)'.format(epoch, ((epoch+1)/max_iter*100)))
     
     return w, b, loss_train, loss_validation, train_acc, dev_acc  # return loss for plotting
 
