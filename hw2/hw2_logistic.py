@@ -1,6 +1,8 @@
 ### [1]
 import numpy as np
 
+np.random.seed(0)
+
 import sys
 X_train_fpath = sys.argv[1]
 Y_train_fpath = sys.argv[2]
