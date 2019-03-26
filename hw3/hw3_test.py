@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
+from keras.models import load_model
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers import Conv2D, MaxPooling2D, Flatten
@@ -16,7 +17,7 @@ def load_test(test_fpath):
     X_test = []
     for features in data['feature'].values:
         split_features = [ int(i) for i in features.split(' ') ]
-        matrix_features = np.array(split_features).reshape(48, 48)
+        matrix_features = np.array(split_features).reshape(48, 48, 1)
         X_test.append(matrix_features)
     X_test = np.array(X_test)
     return X_test, id_test
@@ -30,7 +31,9 @@ print('# Model   : {}'.format(model_fpath))
 
 X_test, id_test = load_test(test_fpath)
 
+model = load_model(model_fpath)
 prediction = model.predict(X_test)
+#print(prediction)
 
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
