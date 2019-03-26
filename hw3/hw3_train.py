@@ -67,22 +67,8 @@ model.add(Dense(units=7, activation='softmax'))
 model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-# model.fit(X_train, Y_train, batch_size=100, epochs=50)
+model.fit(X_train, Y_train, batch_size=100, epochs=50)
 
-datagen_train = ImageDataGenerator(
-    featurewise_center=False,
-    featurewise_std_normalization=False,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    zoom_range=0.5,
-	rotation_range=13,
-    horizontal_flip=False,
-    fill_mode='nearest')
-
-datagen_train.fit(X_train)
-
-train_history = model.fit_generator(datagen_train.flow(X_train, Y_train, batch_size=100, shuffle=True), 
-                steps_per_epoch=3*(math.floor(len(X_train)/100)), epochs=30)
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
 
