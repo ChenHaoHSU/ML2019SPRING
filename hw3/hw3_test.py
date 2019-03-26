@@ -38,5 +38,5 @@ prediction = model.predict(X_test)
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
     for i, v in enumerate(prediction):
-        f.write('%d,%d\n' %(i+1, np.argmax(v)))
+        f.write('%d,%d\n' %(i, np.argmax(v)))
 
