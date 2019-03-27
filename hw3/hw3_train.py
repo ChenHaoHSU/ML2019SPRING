@@ -44,7 +44,7 @@ datagen = ImageDataGenerator(
     shear_range=0.2,
     zoom_range=0.2,
     horizontal_flip=True,
-    fill_mode=’nearest’)
+    fill_mode='nearest')
 
 datagen.fit(X_train)
 
@@ -67,7 +67,7 @@ for i in range(2):
 model.add(Flatten())
 
 # DNN
-for i in range(1):
+for i in range(0):
     model.add(Dense(1024, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
@@ -95,8 +95,8 @@ batch_size = 100
 epochs = 50
 # model.fit(X_train, Y_train, batch_size=200, epochs=300)
 train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size,shuffle=True),
-                    steps_per_epoch=3 * (math.floor(len(X_train) / batch_sz)), epochs=epochs,
-                    callbacks=callbacks_list, verbose=1)
+                    steps_per_epoch=3 * (math.floor(len(X_train) / batch_size)), epochs=epochs,
+                    verbose=1)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
