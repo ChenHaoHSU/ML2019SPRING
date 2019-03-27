@@ -48,6 +48,7 @@ datagen = ImageDataGenerator(
 
 datagen.fit(X_train)
 
+
 model = Sequential()
 # CNN
 model.add(Conv2D(256, (3, 3), activation='relu', padding='same', input_shape=(48, 48, 1)))
@@ -67,19 +68,19 @@ for i in range(2):
 model.add(Flatten())
 
 # DNN
-for i in range(0):
+for i in range(2):
     model.add(Dense(1024, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
-for i in range(1):
+for i in range(2):
     model.add(Dense(512, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
-for i in range(1):
+for i in range(2):
     model.add(Dense(256, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
-for i in range(1):
+for i in range(2):
     model.add(Dense(128, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
@@ -93,10 +94,8 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accur
 # fit model
 batch_size = 100
 epochs = 50
-# model.fit(X_train, Y_train, batch_size=200, epochs=300)
-train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size,shuffle=True),
-                    steps_per_epoch=3 * (math.floor(len(X_train) / batch_size)), epochs=epochs,
-                    verbose=1)
+model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+#train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size,shuffle=True), steps_per_epoch=3 * (math.floor(len(X_train) / batch_size)), epochs=epochs, verbose=1)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])

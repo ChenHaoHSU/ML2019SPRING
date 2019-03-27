@@ -25,9 +25,9 @@ def load_test(test_fpath):
 test_fpath = sys.argv[1]
 output_fpath = sys.argv[2]
 model_fpath = sys.argv[3]
-print('# Test    : {}'.format(test_fpath))
-print('# Outrput : {}'.format(output_fpath))
-print('# Model   : {}'.format(model_fpath))
+print('# Test   : {}'.format(test_fpath))
+print('# Output : {}'.format(output_fpath))
+print('# Model  : {}'.format(model_fpath))
 
 X_test, id_test = load_test(test_fpath)
 
