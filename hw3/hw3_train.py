@@ -53,24 +53,28 @@ for i in range(2):
 model.add(Flatten())
 
 # DNN
-model.add(Dense(1024, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dropout(0.25))
-model.add(Dense(512, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dropout(0.25))
-model.add(Dense(256, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dropout(0.25))
-model.add(Dense(128, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dropout(0.25))
+for i in range(1):
+    model.add(Dense(1024, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.25))
+for i in range(3):
+    model.add(Dense(512, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.25))
+for i in range(3):
+    model.add(Dense(256, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.25))
+for i in range(3):
+    model.add(Dense(128, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.25))
 model.add(Dense(units=7, activation='softmax'))
 
 model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-model.fit(X_train, Y_train, batch_size=100, epochs=50)
+model.fit(X_train, Y_train, batch_size=200, epochs=300)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
