@@ -1,2 +1,6 @@
 data/*
 *.csv
+*.pickle
+*.pkl
+*.pk
+*.hdf5
