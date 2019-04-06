@@ -54,15 +54,15 @@ dropout = 0.25
 model = Sequential()
 # CNN
 model.add(Conv2D(256, (3, 3), activation='relu', padding='same', input_shape=(48, 48, 1)))
-model.add(ZeroPadding2D(padding=(2, 2), data_format='channels_last'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
 model.add(BatchNormalization())
 
-for i in range(3):
-    model.add(Conv2D(256, (3, 3), activation='relu'))
-    model.add(ZeroPadding2D(padding=(1, 1), data_format='channels_last'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+for i in range(2):
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
     model.add(BatchNormalization())
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     model.add(Dropout(dropout))
 
 model.add(Flatten())
