@@ -196,11 +196,13 @@ model_fpath = sys.argv[2]
 print('# Train : {}'.format(train_fpath))
 print('# Model : {}'.format(model_fpath))
 
+print('# Loading data...')
 X_train, Y_train = load_train(train_fpath)
 Y_train = np_utils.to_categorical(Y_train, 7)
 print(Y_train.shape)
 
 # ImageDataGenerator
+print('# Data Gen...')
 datagen = ImageDataGenerator(
     featurewise_center=False,
     featurewise_std_normalization=False,
@@ -212,6 +214,7 @@ datagen = ImageDataGenerator(
     fill_mode='nearest')
 datagen.fit(X_train)
 
+print('# Setting model...')
 model = Sequential()
 # CNN
 model.add(Conv2D(256, (3, 3), activation='relu', padding='same', input_shape=(48, 48, 1)))
@@ -231,7 +234,7 @@ for i in range(2):
 model.add(Flatten())
 
 # DNN
-for i in range(1):
+for i in range(0):
     model.add(Dense(1024, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
@@ -251,9 +254,12 @@ model.add(Dense(units=7, activation='softmax'))
 
 model.summary()
 
+print('# Compling model...')
 batch_size = 200
 epochs = 100
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+
+print('# Start training...')
 # model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
 train_history = model.fit_generator(datagen.flow(X_train,Y_train, batch_size=batch_size,shuffle=True),
                     steps_per_epoch=3 * (math.floor(len(X_train)/batch_size)), epochs=epochs,
@@ -262,4 +268,5 @@ train_history = model.fit_generator(datagen.flow(X_train,Y_train, batch_size=bat
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
 
+print('# Saving model...')
 model.save(model_fpath)
