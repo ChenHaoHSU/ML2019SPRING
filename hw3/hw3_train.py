@@ -200,6 +200,18 @@ X_train, Y_train = load_train(train_fpath)
 Y_train = np_utils.to_categorical(Y_train, 7)
 print(Y_train.shape)
 
+# ImageDataGenerator
+datagen = ImageDataGenerator(
+    featurewise_center=False,
+    featurewise_std_normalization=False,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    zoom_range=0.5,
+	rotation_range=13,
+    horizontal_flip=False,
+    fill_mode='nearest')
+datagen.fit(X_train)
+
 model = Sequential()
 # CNN
 model.add(Conv2D(256, (3, 3), activation='relu', padding='same', input_shape=(48, 48, 1)))
@@ -223,15 +235,15 @@ for i in range(1):
     model.add(Dense(1024, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
-for i in range(3):
+for i in range(1):
     model.add(Dense(512, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
-for i in range(3):
+for i in range(1):
     model.add(Dense(256, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
-for i in range(3):
+for i in range(1):
     model.add(Dense(128, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.25))
@@ -239,8 +251,13 @@ model.add(Dense(units=7, activation='softmax'))
 
 model.summary()
 
+batch_size = 200
+epochs = 100
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-model.fit(X_train, Y_train, batch_size=200, epochs=300)
+# model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+train_history = model.fit_generator(datagen.flow(X_train,Y_train, batch_size=batch_size,shuffle=True),
+                    steps_per_epoch=3 * (math.floor(len(X_train)/batch_size)), epochs=epochs,
+                    verbose=1)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
