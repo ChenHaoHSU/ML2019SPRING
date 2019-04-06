@@ -40,12 +40,13 @@ print('Y_train.shape:', Y_train.shape)
 # ImageDataGenerator
 datagen = ImageDataGenerator(
     featurewise_center=False,
-    featurewise_std_normalization=True,
-	rotation_range=20,
+    featurewise_std_normalization=False,
+    rotation_range=12,
     width_shift_range=0.2,
     height_shift_range=0.2,
-    horizontal_flip=True,
-    zoom_range=0.3,
+    horizontal_flip=False,
+    vertical_flip=False,
+    zoom_range=0.5,
     fill_mode='nearest')
 datagen.fit(X_train)
 
@@ -53,14 +54,14 @@ print('# Setting model...')
 dropout = 0.25
 model = Sequential()
 # CNN
-model.add(Conv2D(256, (3, 3), activation='relu', padding='same', input_shape=(48, 48, 1)))
+model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last', input_shape=(48, 48, 1)))
 model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
 model.add(BatchNormalization())
 
 for i in range(2):
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
     model.add(BatchNormalization())
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     model.add(Dropout(dropout))
@@ -88,8 +89,8 @@ print('# Start training...')
 train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
                                     epochs=epochs, steps_per_epoch=math.ceil(len(X_train)/batch_size))
 
-train_acc = model.evaluate(X_train, Y_train)
-print('\nTrain Acc:', train_acc)
+result = model.evaluate(X_train, Y_train)
+print('\nTrain Acc:', result[1])
 
 print('# Saving model...')
 model.save(model_fpath)
