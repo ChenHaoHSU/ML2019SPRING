@@ -255,7 +255,7 @@ model.add(Dense(units=7, activation='softmax'))
 model.summary()
 
 print('# Compling model...')
-batch_size = 200
+batch_size = 100
 epochs = 100
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
