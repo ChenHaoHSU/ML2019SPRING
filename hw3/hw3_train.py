@@ -74,6 +74,8 @@ for neurons in dnn_neurons:
     model.add(BatchNormalization())
     model.add(Dropout(dropout))
 
+model.add(Dense(units=7, activation='softmax'))
+
 model.summary()
 
 print('# Compling model...')
