@@ -5,11 +5,6 @@ import numpy as np
 import pandas as pd
 
 from keras.models import load_model
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
-from keras.layers import Conv2D, MaxPooling2D, Flatten
-from keras.optimizers import SGD, Adam
-from keras.utils import np_utils, to_categorical
 
 def load_test(test_fpath):
     data = pd.read_csv(test_fpath)
