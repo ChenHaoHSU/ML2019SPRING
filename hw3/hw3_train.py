@@ -14,10 +14,6 @@ from keras.utils import np_utils, to_categorical
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
 
-train_fpath = sys.argv[1]
-model_fpath = sys.argv[2]
-print('# Train : {}'.format(train_fpath))
-print('# Model : {}'.format(model_fpath))
 
 def load_train(train_fpath):
     data = pd.read_csv(train_fpath)
@@ -30,6 +26,28 @@ def load_train(train_fpath):
     X_train = np.array(X_train)
     return X_train, Y_train
 
+def train_val_split(X_train, Y_train, val_size=0.1):
+    train_len = int(round(len(X_train)*(1-val_size)))
+    return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
+    
+def plot_train_history(train_history):
+    import matplotlib.pyplot as plt
+    plt.plot(train_history.history[train])
+    plt.plot(train_history.history[validation])
+    plt.title('Training Process_CNN')
+    # plt.title('Training Process_DNN')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(['acc', 'val_acc'], loc='upper left')
+    plt.savefig('Training_process_CNN.png')
+    # plt.savefig('Training_process_DNN.png')
+
+# Agrv handling
+train_fpath = sys.argv[1]
+model_fpath = sys.argv[2]
+print('# Train : {}'.format(train_fpath))
+print('# Model : {}'.format(model_fpath))
+
 # Loading training data
 print('# Loading data...')
 X_train, Y_train = load_train(train_fpath)
@@ -37,7 +55,15 @@ Y_train = np_utils.to_categorical(Y_train, 7)
 print('X_train.shape:', X_train.shape)
 print('Y_train.shape:', Y_train.shape)
 
-# ImageDataGenerator
+# Split into training set and validation set
+val_size = 0.1
+X_train, Y_train, X_val, Y_val = train_val_split(X_train, Y_train, val_size)
+print('X_train.shape:', X_train.shape)
+print('Y_train.shape:', Y_train.shape)
+print('X_val.shape:', X_val.shape)
+print('Y_val.shape:', Y_val.shape)
+
+# Image augmentation
 datagen = ImageDataGenerator(
     featurewise_center=False, featurewise_std_normalization=False,
     width_shift_range=0.2, height_shift_range=0.2,
@@ -82,8 +108,15 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accur
 
 print('# Start training...')
 # model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+# train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
+#                                     epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
 train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
+                                    steps_per_epoch=5*math.ceil(len(X_train)/batch_size)
+                                    validation_data=(X_val, Y_val),
+                                    validation_steps=len(X_val)/batch_size,
+                                    epochs=epochs)
+
+plot_train_history(train_history)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
