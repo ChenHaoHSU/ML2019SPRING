@@ -111,14 +111,14 @@ epochs = 100
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
 print('# Start training...')
-# model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_val, Y_val))
 # train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
 #                                     epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
-train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                    steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
-                                    validation_data=(X_val, Y_val),
-                                    validation_steps=len(X_val)/batch_size,
-                                    epochs=epochs)
+# train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
+#                                     steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
+#                                     validation_data=(X_val, Y_val),
+#                                     validation_steps=len(X_val)/batch_size,
+#                                     epochs=epochs)
 
 dump_train_history(train_history)
 
