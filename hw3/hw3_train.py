@@ -17,6 +17,7 @@ from keras.callbacks import ModelCheckpoint
 
 
 def load_train(train_fpath):
+    normalization = True
     data = pd.read_csv(train_fpath)
     Y_train = np.array(data['label'].values, dtype=int)
     X_train = []
@@ -24,7 +25,10 @@ def load_train(train_fpath):
         split_features = [ int(i) for i in features.split(' ') ]
         matrix_features = np.array(split_features).reshape(48, 48, 1)
         X_train.append(matrix_features)
-    X_train = np.array(X_train)
+    if normalization == True:
+        X_train = np.array(X_train, dtype=float) / 255.0
+    else:
+        X_train = np.array(X_train, dtype=float)
     return X_train, Y_train
 
 def train_val_split(X_train, Y_train, val_size=0.1):
@@ -59,13 +63,13 @@ Y_train = np_utils.to_categorical(Y_train, 7)
 print('X_train.shape:', X_train.shape)
 print('Y_train.shape:', Y_train.shape)
 
-# Split into training set and validation set
-val_size = 0.1
-X_train, Y_train, X_val, Y_val = train_val_split(X_train, Y_train, val_size)
-print('X_train.shape:', X_train.shape)
-print('Y_train.shape:', Y_train.shape)
-print('X_val.shape:', X_val.shape)
-print('Y_val.shape:', Y_val.shape)
+# # Split into training set and validation set
+# val_size = 0.1
+# X_train, Y_train, X_val, Y_val = train_val_split(X_train, Y_train, val_size)
+# print('X_train.shape:', X_train.shape)
+# print('Y_train.shape:', Y_train.shape)
+# print('X_val.shape:', X_val.shape)
+# print('Y_val.shape:', Y_val.shape)
 
 # Image augmentation
 datagen = ImageDataGenerator(
@@ -111,9 +115,9 @@ epochs = 100
 model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
 print('# Start training...')
-train_history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_val, Y_val))
-# train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-#                                     epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
+# train_history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_val, Y_val))
+train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
+                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
 # train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
 #                                     steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
 #                                     validation_data=(X_val, Y_val),
