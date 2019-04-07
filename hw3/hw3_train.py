@@ -17,7 +17,7 @@ from keras.callbacks import ModelCheckpoint
 
 
 def load_train(train_fpath):
-    normalization = True
+    normalization = False
     data = pd.read_csv(train_fpath)
     Y_train = np.array(data['label'].values, dtype=int)
     X_train = []
