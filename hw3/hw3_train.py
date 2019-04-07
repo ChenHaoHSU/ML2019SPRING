@@ -36,8 +36,8 @@ def dump_train_history(train_history):
     # acc_fpath = 'acc_DNN.csv'
     # acc_val_fpath = 'acc_val_DNN.csv'
 
-    acc = plt.plot(train_history.history['acc'])
-    acc_val = plt.plot(train_history.history['acc_val'])
+    acc = train_history.history['acc']
+    acc_val = train_history.history['acc_val']
     with open(acc_fpath, 'w') as f:
         for i in enumerate(acc):
             f.write('%d\n' %(i))
