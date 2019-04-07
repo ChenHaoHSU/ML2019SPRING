@@ -13,6 +13,7 @@ from keras.optimizers import SGD, Adam
 from keras.utils import np_utils, to_categorical
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ModelCheckpoint
 
 
 def load_train(train_fpath):
@@ -32,17 +33,17 @@ def train_val_split(X_train, Y_train, val_size=0.1):
     
 def dump_train_history(train_history):
     acc_fpath = 'acc_CNN.csv'
-    acc_val_fpath = 'acc_val_CNN.csv'
+    val_acc_fpath = 'val_acc_CNN.csv'
     # acc_fpath = 'acc_DNN.csv'
-    # acc_val_fpath = 'acc_val_DNN.csv'
+    # val_acc_fpath = 'val_acc_DNN.csv'
 
     acc = train_history.history['acc']
     with open(acc_fpath, 'w') as f:
         for i in enumerate(acc):
             f.write('%d\n' %(i))
-    acc_val = train_history.history['acc_val']
-    with open(acc_val_fpath, 'w') as f:
-        for i in enumerate(acc_val):
+    val_acc = train_history.history['val_acc']
+    with open(val_acc_fpath, 'w') as f:
+        for i in enumerate(val_acc):
             f.write('%d\n' %(i))
 
 # Agrv handling

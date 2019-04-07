@@ -1,18 +1,18 @@
 
 
-# Plot acc and acc_val of CNN and DNN
+# Plot acc and val_acc of CNN and DNN
 import matplotlib.pyplot as plt
 import numpy as np
 
 acc_fpath = 'acc_CNN.csv'
-acc_val_fpath = 'acc_val_CNN.csv'
+val_acc_fpath = 'val_acc_CNN.csv'
 # acc_fpath = 'acc_DNN.csv'
-# acc_val_fpath = 'acc_val_DNN.csv'
+# val_acc_fpath = 'val_acc_DNN.csv'
 acc = np.genfromtxt(acc_fpath)
-acc_val = np.genfromtxt(acc_val_fpath)
+val_acc = np.genfromtxt(val_acc_fpath)
 
 plt.plot(acc)
-plt.plot(acc_val)
+plt.plot(val_acc)
 plt.title('Training Process_CNN')
 # plt.title('Training Process_DNN')
 plt.xlabel('Epoch')
