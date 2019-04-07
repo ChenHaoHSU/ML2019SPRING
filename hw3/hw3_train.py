@@ -44,11 +44,11 @@ def dump_train_history(train_history):
     acc = train_history.history['acc']
     with open(acc_fpath, 'w') as f:
         for i in enumerate(acc):
-            f.write('{}\n'.format(i))
+            f.write('{}\n'.format(i[1]))
     val_acc = train_history.history['val_acc']
     with open(val_acc_fpath, 'w') as f:
         for i in enumerate(val_acc):
-            f.write('{}\n'.format(i))
+            f.write('{}\n'.format(i[1]))
 
 # Agrv handling
 train_fpath = sys.argv[1]
@@ -124,7 +124,7 @@ train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=ba
                                     validation_steps=len(X_val)/batch_size,
                                     epochs=epochs)
 
-# dump_train_history(train_history)
+dump_train_history(train_history)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
