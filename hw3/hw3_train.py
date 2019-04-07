@@ -124,7 +124,7 @@ train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=ba
 #                                     validation_steps=len(X_val)/batch_size,
 #                                     epochs=epochs)
 
-dump_train_history(train_history)
+# dump_train_history(train_history)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
