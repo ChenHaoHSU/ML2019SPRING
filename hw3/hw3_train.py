@@ -37,10 +37,10 @@ def dump_train_history(train_history):
     # acc_val_fpath = 'acc_val_DNN.csv'
 
     acc = train_history.history['acc']
-    acc_val = train_history.history['acc_val']
     with open(acc_fpath, 'w') as f:
         for i in enumerate(acc):
             f.write('%d\n' %(i))
+    acc_val = train_history.history['acc_val']
     with open(acc_val_fpath, 'w') as f:
         for i in enumerate(acc_val):
             f.write('%d\n' %(i))
