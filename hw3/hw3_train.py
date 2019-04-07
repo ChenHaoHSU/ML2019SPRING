@@ -30,18 +30,20 @@ def train_val_split(X_train, Y_train, val_size=0.1):
     train_len = int(round(len(X_train)*(1-val_size)))
     return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
     
-def plot_train_history(train_history):
-    import matplotlib.pyplot as plt
-    plt.plot(train_history.history['acc'])
-    plt.plot(train_history.history['acc_val'])
-    plt.title('Training Process_CNN')
-    # plt.title('Training Process_DNN')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend(['acc', 'val_acc'], loc='upper left')
-    plt.savefig('Training_process_CNN.png')
-    # plt.savefig('Training_process_DNN.png')
-    plt.show()
+def dump_train_history(train_history):
+    acc_fpath = 'acc_CNN.csv'
+    acc_val_fpath = 'acc_val_CNN.csv'
+    # acc_fpath = 'acc_DNN.csv'
+    # acc_val_fpath = 'acc_val_DNN.csv'
+
+    acc = plt.plot(train_history.history['acc'])
+    acc_val = plt.plot(train_history.history['acc_val'])
+    with open(acc_fpath, 'w') as f:
+        for i in enumerate(acc):
+            f.write('%d\n' %(i))
+    with open(acc_val_fpath, 'w') as f:
+        for i in enumerate(acc_val):
+            f.write('%d\n' %(i))
 
 # Agrv handling
 train_fpath = sys.argv[1]
@@ -117,7 +119,7 @@ train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=ba
                                     validation_steps=len(X_val)/batch_size,
                                     epochs=epochs)
 
-plot_train_history(train_history)
+dump_train_history(train_history)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
