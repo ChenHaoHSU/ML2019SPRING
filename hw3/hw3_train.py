@@ -68,6 +68,7 @@ for i in range(2):
 
 model.add(Flatten())
 
+
 # DNN
 dnn_neurons = [512, 256, 128]
 for neurons in dnn_neurons:
