@@ -32,8 +32,8 @@ def train_val_split(X_train, Y_train, val_size=0.1):
     
 def plot_train_history(train_history):
     import matplotlib.pyplot as plt
-    plt.plot(train_history.history[train])
-    plt.plot(train_history.history[validation])
+    plt.plot(train_history.history['acc'])
+    plt.plot(train_history.history['acc_val'])
     plt.title('Training Process_CNN')
     # plt.title('Training Process_DNN')
     plt.xlabel('Epoch')
@@ -41,6 +41,7 @@ def plot_train_history(train_history):
     plt.legend(['acc', 'val_acc'], loc='upper left')
     plt.savefig('Training_process_CNN.png')
     # plt.savefig('Training_process_DNN.png')
+    plt.show()
 
 # Agrv handling
 train_fpath = sys.argv[1]
@@ -111,7 +112,7 @@ print('# Start training...')
 # train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
 #                                     epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
 train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                    steps_per_epoch=5*math.ceil(len(X_train)/batch_size)
+                                    steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
                                     validation_data=(X_val, Y_val),
                                     validation_steps=len(X_val)/batch_size,
                                     epochs=epochs)
