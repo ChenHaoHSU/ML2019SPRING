@@ -36,19 +36,15 @@ def train_val_split(X_train, Y_train, val_size=0.1):
     return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
     
 def dump_train_history(train_history):
-    acc_fpath = 'acc_CNN.csv'
-    val_acc_fpath = 'val_acc_CNN.csv'
-    # acc_fpath = 'acc_DNN.csv'
-    # val_acc_fpath = 'val_acc_DNN.csv'
+    model_type = 'CNN'
+    item_type = ['acc', 'val_acc', 'loss', 'val_loss' ]
 
-    acc = train_history.history['acc']
-    with open(acc_fpath, 'w') as f:
-        for i in enumerate(acc):
-            f.write('{}\n'.format(i[1]))
-    val_acc = train_history.history['val_acc']
-    with open(val_acc_fpath, 'w') as f:
-        for i in enumerate(val_acc):
-            f.write('{}\n'.format(i[1]))
+    for item in item_type:
+        filename = '{}_{}.csv'.format(item, model_type)
+        data = train_history.history[item]
+        with open(filename, 'w') as f:
+            for i in enumerate(data):
+                f.write('{}\n'.format(i[1]))
 
 # Agrv handling
 train_fpath = sys.argv[1]
