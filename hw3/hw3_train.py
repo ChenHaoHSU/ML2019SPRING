@@ -39,14 +39,10 @@ print('Y_train.shape:', Y_train.shape)
 
 # ImageDataGenerator
 datagen = ImageDataGenerator(
-    featurewise_center=False,
-    featurewise_std_normalization=False,
-    rotation_range=12,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    horizontal_flip=False,
-    vertical_flip=False,
-    zoom_range=0.5,
+    featurewise_center=False, featurewise_std_normalization=False,
+    width_shift_range=0.2, height_shift_range=0.2,
+    horizontal_flip=False, vertical_flip=False,
+    rotation_range=12, zoom_range=0.5,
     fill_mode='nearest')
 datagen.fit(X_train)
 
@@ -59,12 +55,12 @@ model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
 model.add(BatchNormalization())
 
 for i in range(2):
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
-    model.add(BatchNormalization())
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    model.add(Dropout(dropout))
+    for j in range(2):
+        model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
+        model.add(BatchNormalization())
+    for j in range(1):
+        model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+        model.add(Dropout(dropout))
 
 model.add(Flatten())
 
