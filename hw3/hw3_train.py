@@ -40,11 +40,11 @@ def dump_train_history(train_history):
     acc = train_history.history['acc']
     with open(acc_fpath, 'w') as f:
         for i in enumerate(acc):
-            f.write('%d\n' %(i))
+            f.write('{}\n'.format(i))
     val_acc = train_history.history['val_acc']
     with open(val_acc_fpath, 'w') as f:
         for i in enumerate(val_acc):
-            f.write('%d\n' %(i))
+            f.write('{}\n'.format(i))
 
 # Agrv handling
 train_fpath = sys.argv[1]
