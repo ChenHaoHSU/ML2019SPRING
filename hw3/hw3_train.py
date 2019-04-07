@@ -68,7 +68,6 @@ for i in range(2):
 
 model.add(Flatten())
 
-
 # DNN
 dnn_neurons = [512, 256, 128]
 for neurons in dnn_neurons:
@@ -88,7 +87,7 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accur
 print('# Start training...')
 # model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
 train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                    epochs=epochs, steps_per_epoch=3*math.ceil(len(X_train)/batch_size))
+                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
