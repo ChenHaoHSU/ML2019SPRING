@@ -97,9 +97,11 @@ print(y_pred.shape)
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
                           title=None,
-                          cmap=plt.cm.jet):
+                          cmap=plt.cm.Blues):
     """
-    This function prints and plots the confusion matrix.
+    This function prints and plots the confusion matrix. [0.24 0.56 0.06 0.03 0.09 0.03 0.  ]
+ [0.12 0.   0.55 0.02 0.17 0.07 0.08]
+
     Normalization can be applied by setting `normalize=True`.
     """
     if not title:
@@ -157,7 +159,11 @@ class_names = np.array(['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 
 
 # Plot normalized confusion matrix
 plot_confusion_matrix(y_true, y_pred, classes=class_names, normalize=True,
-                      title='Normalized confusion matrix')
+                      title='Confusion Matrix')
 plt.savefig('confusion_matrix.png')
 plt.show()
+
+
+
+
 
