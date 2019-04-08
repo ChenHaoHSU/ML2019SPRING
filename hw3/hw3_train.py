@@ -24,6 +24,7 @@ def load_train(train_fpath):
     for features in data['feature'].values:
         split_features = [ int(i) for i in features.split(' ') ]
         matrix_features = np.array(split_features).reshape(48, 48, 1)
+        #matrix_features = np.array(split_features).reshape(48*48)
         X_train.append(matrix_features)
     if normalization == True:
         X_train = np.array(X_train, dtype=float) / 255.0
@@ -95,6 +96,8 @@ for i in range(2):
 model.add(Flatten())
 
 # DNN
+# model.add(Dense(input_dim=X_train.shape[1], units=1024, activation='relu'))
+# dnn_neurons = [1024, 1024, 1024, 1024, 512, 256, 128]
 dnn_neurons = [512, 256, 128]
 for neurons in dnn_neurons:
     model.add(Dense(neurons, activation='relu'))
