@@ -4,3 +4,4 @@ data/*
 *.pkl
 *.pk
 *.hdf5
+*.nfs*
