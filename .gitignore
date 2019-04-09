@@ -5,3 +5,4 @@ data/*
 *.pk
 *.hdf5
 *.nfs*
+*.png
