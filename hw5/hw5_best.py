@@ -34,10 +34,14 @@ for i, im in enumerate(input_images):
     width, height = im.size
     for x in range(0, width):
         for y in range(0, height):
+            increment = 23 if ((x + y)%6) < 3 else -23
+            # increment = 8 if xx == yy else -8
             r = pixels[x, y][0]
             g = pixels[x, y][1]
             b = pixels[x, y][2]
-            pixels[x, y] = (int(r + rand.choice(rand_list)), int(g + rand.choice(rand_list)), int(b + rand.choice(rand_list)))
+
+            pixels[x, y] = (int(r + increment), int(g + increment), int(b + increment))
+            # pixels[x, y] = (int(r + rand.choice(rand_list)), int(g + rand.choice(rand_list)), int(b + rand.choice(rand_list)))
 
 write_output(input_images, output_dir)
 print('# Write {} images'.format(len(input_images)))
