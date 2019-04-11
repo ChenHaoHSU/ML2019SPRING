@@ -45,7 +45,6 @@ model = load_model(model_fpath)
 ###############################################
 # Figure 2 (Filter Visualization)
 ###############################################
-'''
 print('### Start Saliency Map...')
 label = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprised', 'neutral']
 input_img = model.input
@@ -92,8 +91,7 @@ for i, id in enumerate(image_ids):
     plt.tight_layout()
     plt.savefig('{}/fig1_{}.jpg'.format(output_fpath, i))
     print('*** Save image {}/fig1_{}.jpg!'.format(output_fpath, i))
-    # plt.show()
-'''
+    plt.close()
 
 ###############################################
 # Figure 2 (Filter Visualization)
@@ -131,8 +129,8 @@ for i, f in enumerate(filter_index):
     input_img_data = np.array(random_img)
 
     # Gradient ascent (AdaGrad)
-    lr = 3.0
-    for iter in range(1000):
+    lr = 5.0
+    for iter in range(500):
         loss_value, grads_value = iterate([input_img_data])
         input_img_data += lr * grads_value
         # print("\riteration: " + repr(iter) + ", current loss: " + repr(loss_value), end="", flush=True)
@@ -148,12 +146,14 @@ for i, f in enumerate(filter_index):
     
 plt.savefig('{}/fig2_1.jpg'.format(output_fpath))
 print('*** Save image {}/fig2_1.jpg!'.format(output_fpath))
+plt.close()
 # plt.show()
 
 ########################
 # fig2_2
 ########################
-idx = 15 # Angry
+idx = 82 # Surprised
+input_img = model.input
 photo = X_train[idx].reshape(1, 48, 48, 1)
 fn = K.function([input_img,K.learning_phase()],[layer_dict[layer_name].output])
 im = fn([photo,0])
@@ -167,6 +167,7 @@ for i, f in enumerate(filter_index):
 
 plt.savefig('{}/fig2_2.jpg'.format(output_fpath))
 print('*** Save image {}/fig2_2.jpg!'.format(output_fpath))
+plt.close()
 # plt.show()
 
 ###############################################

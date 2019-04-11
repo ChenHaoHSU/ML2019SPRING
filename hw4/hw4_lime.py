@@ -23,11 +23,9 @@ def load_train(train_fpath):
     data = pd.read_csv(train_fpath)
     Y_train = np.array(data['label'].values, dtype=int)
     X_train = []
-    zz = np.array([np.zeros((48, 48)), np.zeros((48, 48))])
     for features in data['feature'].values:
         split_features = [ int(i) for i in features.split(' ') ]
         matrix_features = np.array(split_features).reshape(48, 48)
-        matrix_features = np.append(matrix_features, zz)
         X_train.append(matrix_features)
     if normalization == True:
         X_train = np.array(X_train, dtype=float) / 255.0
@@ -47,6 +45,8 @@ model = load_model(model_fpath)
 label = [0, 1, 2, 3, 4, 5, 6]
 image_ids = [15, 299, 9, 25, 70, 81, 94]
 
+x_train_rgb = matrix_features
+
 def predict(input):
     return model.predict(input)
 
@@ -56,7 +56,7 @@ def predict(input):
 for i, idx in enumerate(image_ids):
     explainer = lime_image.LimeImageExplainer()
     explaination = explainer.explain_instance(
-                                    image=X_train[idx],
+                                    image=x_train_rgb[idx],
                                     classifier_fn=predict,
                                     segmentation_fn=None
                                 )
