@@ -7,3 +7,4 @@ data/*
 *.nfs*
 *.png
 *.tgz
+hw4/output/*

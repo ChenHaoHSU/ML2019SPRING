@@ -17,16 +17,23 @@ print('# Training data : {}'.format(train_fpath))
 print('# Output path   : {}'.format(output_fpath))
 print('# Model         : {}'.format(model_fpath))
 
+label = [0, 1, 2, 3, 4, 5, 6]
+image_ids = [15, 299, 9, 25, 70, 81, 94]
+
 # Load data
 def load_train(train_fpath):
     normalization = False
     data = pd.read_csv(train_fpath)
     Y_train = np.array(data['label'].values, dtype=int)
     X_train = []
+    i = 0
     for features in data['feature'].values:
-        split_features = [ int(i) for i in features.split(' ') ]
-        matrix_features = np.array(split_features).reshape(48, 48)
-        X_train.append(matrix_features)
+        if i in image_ids:
+            split_features = [ [int(i),0,0] for i in features.split(' ') ]
+            matrix_features = np.array(split_features).reshape(48, 48, 3)
+            # np.append(matrix_features,np.zeros(48, 48))
+            X_train.append(matrix_features)
+        i += 1
     if normalization == True:
         X_train = np.array(X_train, dtype=float) / 255.0
     else:
@@ -42,13 +49,13 @@ print(X_train.shape)
 print('# Loading model...')
 model = load_model(model_fpath)
 
-label = [0, 1, 2, 3, 4, 5, 6]
-image_ids = [15, 299, 9, 25, 70, 81, 94]
-
-x_train_rgb = matrix_features
+x_train_rgb = X_train
 
 def predict(input):
-    return model.predict(input)
+    gray = input[:,:,:,0]
+    print(gray.shape)
+    gray.reshape(10,48,48,1)
+    return model.predict(gray)
 
 # def segmentation(input):
 #     skimage.segmentation.slic()
@@ -56,7 +63,7 @@ def predict(input):
 for i, idx in enumerate(image_ids):
     explainer = lime_image.LimeImageExplainer()
     explaination = explainer.explain_instance(
-                                    image=x_train_rgb[idx],
+                                    image=x_train_rgb[i],
                                     classifier_fn=predict,
                                     segmentation_fn=None
                                 )
