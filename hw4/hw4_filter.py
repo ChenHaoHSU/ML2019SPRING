@@ -1,33 +1,34 @@
 import sys
-
-train_fpath = sys.argv[1]
-output_fpath = sys.argv[2]
-model_fpath = sys.argv[3]
-print('# Training data : {}'.format(train_fpath))
-print('# Output path   : {}'.format(output_fpath))
-print('# Model         : {}'.format(model_fpath))
-
 import numpy as np
+import pandas as pd
+from numpy import inf
 from keras import backend as K
 from keras.models import load_model
 from scipy.misc import imsave
 from sys import argv
-from numpy import inf
 import matplotlib.pyplot as plt
 import math
 
+train_fpath = sys.argv[1]
+output_fpath = sys.argv[2]
+model_fpath = sys.argv[3]
+output_fpath = output_fpath if output_fpath[-1] != '/' else output_fpath[:-1]
+print('# Training data : {}'.format(train_fpath))
+print('# Output path   : {}'.format(output_fpath))
+print('# Model         : {}'.format(model_fpath))
+
 def deprocess_image(x):
-    # normalize tensor: center on 0., ensure std is 0.1
-    x -= x.mean()
-    x /= (x.std() + 1e-5)
+    # # normalize tensor: center on 0., ensure std is 0.1
+    # x -= x.mean()
+    # x /= (x.std() + 1e-5)
 
-    # clip to [0, 1]
-    x += 0.5
-    x = np.clip(x, 0, 1)
+    # # clip to [0, 1]
+    # x += 0.5
+    # x = np.clip(x, 0, 1)
 
-    # convert to RGB array
-    x *= 255
-    x = np.clip(x, 0, 255).astype('uint8')
+    # # convert to RGB array
+    # x *= 255
+    # x = np.clip(x, 0, 255).astype('uint8')
     return x
 
 model_name = model_fpath
@@ -37,15 +38,18 @@ input_img = model.input
 
 layer_name = "conv2d_1"
 print("process on layer " + layer_name)
-# filter_index = range(100, 200)
-filter_index = [1, 2, 3, 10, 12, 15, 16, 17, 29, 30, 32, 36, 37, 38, 45, 46, 48, \
-                56, 60, 65, 74, 78, 80, 83, 86, 91, 92, 95, 96, 99,\
-                108, 111, 112, 113, 119, 122, 123, 124, 125, 127, 128, 129, 132, 134, 135, 139, 141, 142, 145, 146, 148, 156,\
-                156, 165, 167, 171, 175, 179, 182, 184, 187, 190, 195, 197 ]
+# filter_index = [1, 2, 3, 12, 16, 17, 23, 29, 30, 32, 36, 37, 38, 40, 46, 48,\
+#                 54, 60, 62, 64, 65, 74, 78, 80, 83, 86, 92, 95, 98,\
+#                 108, 112, 113, 119, 123, 127, 132, 135, 142, 145,\
+#                 156, 165, 167, 171, 175, 179, 184, 187, 195, 197]
+filter_index = [1, 2, 12, 16, 17, 29, 30, 32, 36, 37, 38, 40, 46,\
+                54, 62, 65, 74, 78, 80, 83, 92, 95, 98, 108, 112, 113, 119, 123, 127, 132, 142, 145]
+# print(len(filter_index))
 
+########################
+# fig2_1
+########################
 np.random.seed(0)
-
-# for loop
 random_img = np.ones((1, 48, 48, 1))
 for k, f in enumerate(filter_index):
     print("process on filter " + repr(f))
@@ -62,90 +66,77 @@ for k, f in enumerate(filter_index):
     grad_sum = 0.0
     for i in range(5000):
         loss_value, grads_value = iterate([input_img_data])
-        if i < 2 and loss_value == 0.0:
-            break
+        # if i == 0 and loss_value == 0.0:
+        #     break
         grad_sum += np.square(grads_value)
         step = lr / np.sqrt(grad_sum)
         step[step == inf] = 1.0
         step = lr
         input_img_data += step * grads_value
         print("\riteration: " + repr(i) + ", current loss: " + repr(loss_value), end="", flush=True)
-        # if loss_value <= 0:
-        #     break
+        if loss_value <= 0:
+            break
     print("", flush=True)
 
     img = input_img_data[0].reshape(48, 48)
     img = deprocess_image(img)
-    plt.subplot(8, math.ceil(len(filter_index) / 8), k+1)
-    # plt.title(repr(f))
+    plt.subplot(4, math.ceil(len(filter_index) / 4), k+1)
+    plt.title(repr(f))
     plt.xticks([], [])
     plt.yticks([], [])
     plt.imshow(input_img_data[0].reshape(48, 48), cmap='gray')
     
 print("save image...")
-plt.savefig("%s_%s.png" % (model_name, layer_name))
-plt.show()
+plt.savefig('{}/fig2_1.jpg'.format(output_fpath))
+# plt.show()
 
-model_name = model_fpath
-model = load_model(model_name)
-layer_dict = dict([(layer.name, layer) for layer in model.layers])
-input_img = model.input
+########################
+# fig2_2
+########################
+def load_train(train_fpath):
+    normalization = False
+    data = pd.read_csv(train_fpath)
+    Y_train = np.array(data['label'].values, dtype=int)
+    X_train = []
+    for features in data['feature'].values:
+        split_features = [ int(i) for i in features.split(' ') ]
+        matrix_features = np.array(split_features).reshape(48, 48, 1)
+        #matrix_features = np.array(split_features).reshape(48*48)
+        X_train.append(matrix_features)
+    if normalization == True:
+        X_train = np.array(X_train, dtype=float) / 255.0
+    else:
+        X_train = np.array(X_train, dtype=float)
+    return X_train, Y_train
 
-layer_name = "conv2d_1"
-#print("process on layer " + layer_name)
-filter_index = range(32)
-
-idx = 3579
+idx = 1061
+x, _ = load_train(train_fpath)
 photo = x[idx].reshape(1, 48, 48, 1)
 
+# j = 0
+# for i in range(1000, 1100):
+#     photo = x[i].reshape(1, 48, 48, 1)
+#     plt.subplot(10, 10, j+1)
+#     j += 1
+#     plt.title(repr(i))
+#     plt.xticks([], [])
+#     plt.yticks([], [])
+#     plt.imshow(photo.reshape(48, 48), cmap='gray')
+# plt.savefig('photo.png')
+
 collect_layers = list()
-collect_layers.append(K.function([input_img,K.learning_phase()],[layer_dict['conv2d_1'].output]))
+collect_layers.append(K.function([input_img,K.learning_phase()],[layer_dict[layer_name].output]))
 for cnt, fn in enumerate(collect_layers):
     im = fn([photo,0])
     #fig = plt.figure(figsize=(14,8))
     nb_filter = im[0].shape[3]
-    for f in filter_index:
-        plt.subplot(4, 8, f+1)
+    for i, f in enumerate(filter_index):
+        plt.subplot(4, math.ceil(len(filter_index) / 4), i+1)
         plt.title(repr(f))
         plt.xticks([], [])
         plt.yticks([], [])
-        plt.imshow(im[0][0,f,:,:].reshape(48, 48), cmap='gray')
+        plt.imshow(im[0][0,:,:,f].reshape(48, 48), cmap='gray')
 
 print("save image...")
-plt.savefig("hw3_Q5_output")
-plt.show()
-
-
-# from sys import argv
-# import numpy as np
-# import seaborn as sb
-# import pandas as pd
-# import matplotlib.pyplot as plt
-# import csv
-# import os
-# os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
-# from keras.models import load_model
-# from keras.utils import plot_model, np_utils
-# from sklearn.metrics import confusion_matrix
-# import keras.backend as K
-
-# x = []
-# y = []
-
-# n_row = 0
-# text = open(train_fpath, 'r') 
-# row = csv.reader(text , delimiter=",")
-# for r in row:
-# 	if n_row != 0:
-# 		y.append(r[0])
-# 		r[1] = np.array(r[1].split(' '))
-# 		r[1] = np.reshape(r[1], (1, 48, 48))
-# 		x.append(r[1])
-# 	n_row = n_row+1
-# text.close()
-# x = np.array(x)
-# y = np.array(y)
-# x = x.astype(np.float64)
-# x = x/255
-# y = y.astype(np.int)
-# y = np_utils.to_categorical(y, num_classes=7)
+plt.savefig('{}/fig2_2.jpg'.format(output_fpath))
+# plt.show()
