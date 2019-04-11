@@ -18,17 +18,6 @@ print('# Output path   : {}'.format(output_fpath))
 print('# Model         : {}'.format(model_fpath))
 
 def deprocess_image(x):
-    # # normalize tensor: center on 0., ensure std is 0.1
-    # x -= x.mean()
-    # x /= (x.std() + 1e-5)
-
-    # # clip to [0, 1]
-    # x += 0.5
-    # x = np.clip(x, 0, 1)
-
-    # # convert to RGB array
-    # x *= 255
-    # x = np.clip(x, 0, 255).astype('uint8')
     return x
 
 model_name = model_fpath
@@ -66,16 +55,12 @@ for k, f in enumerate(filter_index):
     grad_sum = 0.0
     for i in range(5000):
         loss_value, grads_value = iterate([input_img_data])
-        # if i == 0 and loss_value == 0.0:
-        #     break
         grad_sum += np.square(grads_value)
         step = lr / np.sqrt(grad_sum)
         step[step == inf] = 1.0
         step = lr
         input_img_data += step * grads_value
         print("\riteration: " + repr(i) + ", current loss: " + repr(loss_value), end="", flush=True)
-        if loss_value <= 0:
-            break
     print("", flush=True)
 
     img = input_img_data[0].reshape(48, 48)

@@ -1,93 +1,90 @@
 import sys
 import csv
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from keras.models import load_model
+from keras.utils import np_utils
+import keras.backend as K
 
+print('### Start Saliency Map...')
+
+# Handle argv
 train_fpath = sys.argv[1]
 output_fpath = sys.argv[2]
 model_fpath = sys.argv[3]
+output_fpath = output_fpath if output_fpath[-1] != '/' else output_fpath[:-1]
 print('# Training data : {}'.format(train_fpath))
 print('# Output path   : {}'.format(output_fpath))
 print('# Model         : {}'.format(model_fpath))
 
-from sys import argv
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import csv
-from keras.models import load_model
-from keras.utils import plot_model, np_utils
-from sklearn.metrics import confusion_matrix
-import keras.backend as K
+label = {0:'angry', 1:'disgust', 2:'fear', 3:'happy', 4:'sad', 5:'surprised', 6:'neutral'}
 
-x = []
-y = []
+# Load data
+def load_train(train_fpath):
+    normalization = False
+    data = pd.read_csv(train_fpath)
+    Y_train = np.array(data['label'].values, dtype=int)
+    X_train = []
+    for features in data['feature'].values:
+        split_features = [ int(i) for i in features.split(' ') ]
+        matrix_features = np.array(split_features).reshape(48, 48, 1)
+        #matrix_features = np.array(split_features).reshape(48*48)
+        X_train.append(matrix_features)
+    if normalization == True:
+        X_train = np.array(X_train, dtype=float) / 255.0
+    else:
+        X_train = np.array(X_train, dtype=float)
+    return X_train, Y_train
 
-n_row = 0
-text = open(train_fpath, 'r') 
-row = csv.reader(text , delimiter=",")
-for r in row:
-	if n_row != 0:
-		y.append(r[0])
-		r[1] = np.array(r[1].split(' '))
-		r[1] = np.reshape(r[1], (1, 48, 48))
-		x.append(r[1])
-	n_row = n_row+1
-text.close()
-x = np.array(x)
-y = np.array(y)
-x = x.astype(np.float64)
-x = x/255.0
-y = y.astype(np.int)
-y = np_utils.to_categorical(y, num_classes=7)
+print('# Loading data...')
+X_train, Y_train = load_train(train_fpath)
+Y_train = np_utils.to_categorical(Y_train, 7)
 
+# Load model
+print('# Loading model...')
 model = load_model(model_fpath)
+input_img = model.input
+image_ids = [15, 299, 9, 25, 70, 81, 94]
 
-label = ["angry", "disgust", "fear", "happy", "sad", "suprise", "neutral"]
+for i, id in enumerate(image_ids):
 
-model_name = 'hw4_Q1'
+    print('# Plotting {} ({})...'.format(label[i], id))
 
-print("print saliency map...")
-plt.figure(figsize=(16, 6))
-emotion_classifier = model
-input_img = emotion_classifier.input
-img_ids = [(1, 3579), (2, 573), (3, 17824), (4, 4865), (5, 26), (6, 15586), (7, 12006)]
-for i, idx in img_ids:
-
-    print("plot figure %d." % idx)
-    # img = x[idx].reshape(1, 1, 48, 48)
-    img = x[idx].reshape(1, 48, 48, 1)
-    val_proba = emotion_classifier.predict(img)
-    pred = val_proba.argmax(axis=-1)
-    target = K.mean(emotion_classifier.output[:, pred[0]])
+    # Get function
+    img = X_train[id].reshape(1, 48, 48, 1)
+    pred = model.predict(img).argmax(axis=-1)
+    target = K.mean(model.output[:, pred[0]])
     grads = K.gradients(target, input_img)[0]
     fn = K.function([input_img, K.learning_phase()], [grads])
 
-    heatmap = fn([img, 0])[0]
-    heatmap = heatmap.reshape(48, 48)
-    std = np.std(heatmap)
-    mean = np.mean(heatmap)
-    heaptmap = (heatmap-mean)/(std+1e-5)
-    #heatmap -= heatmap.mean()
-    #heatmap /= heatmap.std()
+    # Calculate saliency map
+    sliency_map = fn([img, 0])[0].reshape(48, 48)
+    std, mean = np.std(sliency_map), np.mean(sliency_map)
+    std, mean = sliency_map.std(), sliency_map.mean()
+    heaptmap = (sliency_map - mean) / (std+1e-5)
+    sliency_map -= sliency_map.mean()
+    sliency_map /= sliency_map.std()
 
-    see = img.reshape(48, 48)
-    plt.subplot(3, 7, i)
-    plt.imshow(see, cmap='gray')
-    plt.title("%d. %s" % (idx, label[y[idx].argmax()]) )
+    # Plot original figure
+    fig, (ax1, ax2, ax3) = plt.subplots(figsize=(12, 3), ncols=3)
+    original = img.reshape(48, 48)
+    img1 = ax1.imshow(original, cmap='gray')
+    ax1.set_title('{}. {} ({})'.format(i, label[i], id))
 
-    thres = heatmap.std()
-    see[np.where(abs(heatmap) <= thres)] = np.mean(see)
+    thres = sliency_map.std()
+    original[np.where(abs(sliency_map) <= thres)] = original.mean()
 
-    plt.subplot(3, 7, i+7)
-    plt.imshow(heatmap, cmap='jet')
-    plt.colorbar()
+    # Plot sliency
+    img2 = ax2.imshow(sliency_map, cmap='jet')
+    fig.colorbar(img2, ax=ax2)
+    ax2.set_title('Saliency Map'.format(label[i], id))
     plt.tight_layout()
 
-    plt.subplot(3, 7, i+14)
-    plt.imshow(see,cmap='gray')
-    plt.colorbar()
+    # Plot mask
+    img3 = ax3.imshow(original, cmap='gray')
+    fig.colorbar(img3, ax=ax3)
+    ax3.set_title('Mask'.format(label[i], id))
     plt.tight_layout()
-
-plt.savefig("%s_sm_test.png" % model_name[:-3], dpi=100)
-plt.show()
+    plt.savefig('{}/fig1_{}.jpg'.format(output_fpath, i))
+    # plt.show()
