@@ -60,6 +60,7 @@ Y_train = np_utils.to_categorical(Y_train, 7)
 print('X_train.shape:', X_train.shape)
 print('Y_train.shape:', Y_train.shape)
 
+'''
 # Split into training set and validation set
 val_size = 0.1
 X_train, Y_train, X_val, Y_val = train_val_split(X_train, Y_train, val_size)
@@ -67,6 +68,7 @@ print('X_train.shape:', X_train.shape)
 print('Y_train.shape:', Y_train.shape)
 print('X_val.shape:', X_val.shape)
 print('Y_val.shape:', Y_val.shape)
+'''
 
 # Image augmentation
 datagen = ImageDataGenerator(
@@ -115,15 +117,15 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accur
 
 print('# Start training...')
 # train_history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_val, Y_val))
-# train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-#                                     epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
 train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                    steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
-                                    validation_data=(X_val, Y_val),
-                                    validation_steps=len(X_val)/batch_size,
-                                    epochs=epochs)
+                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
+# train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
+#                                     steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
+#                                     validation_data=(X_val, Y_val),
+#                                     validation_steps=len(X_val)/batch_size,
+#                                     epochs=epochs)
 
-dump_train_history(train_history)
+# dump_train_history(train_history)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
