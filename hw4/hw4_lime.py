@@ -21,6 +21,7 @@ print('# Model         : {}'.format(model_fpath))
 
 label = [0, 1, 2, 3, 4, 5, 6]
 image_ids = [15, 299, 9, 25, 70, 81, 94]
+np.random.seed(0)
 
 # Load data
 def load_train(train_fpath):
