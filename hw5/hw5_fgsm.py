@@ -8,11 +8,36 @@ from PIL import Image
 from torchvision.models import vgg16, vgg19, resnet50, \
                                resnet101, densenet121, densenet169
 
+input_dir = sys.argv[1]
+label_fpath = ''
+output_dir = sys.argv[2]
+print('# Input dir : {}'.format(input_dir))
+print('# Output dir : {}'.format(output_dir))
+
+def load_input(input_dir):
+    input_images = []
+    for i in range(200):
+        image_file = '{}/{:03d}.png'.format(input_dir, i)
+        im = Image.open(image_file)
+        input_images.append(im)
+    return input_images
+
+def load_label(label_fpath):
+
+
+def write_output(images, output_dir):
+    for i, im in enumerate(images):
+        output_file = '{}/{:03d}.png'.format(output_dir, i)
+        im.save(output_file)
+
+input_images = load_input(input_dir)
+print('# Load {} images'.format(len(input_images)))
+
 ## [2] Load pretrained model
 # using pretrain proxy model, ex. VGG16, VGG19...
-model = ...(pretrain=True)
-# or load weights from .pt file
-model = torch.load_state_dict(...)
+model = vgg16(pretrained=True)
+# # or load weights from .pt file
+# model = torch.load_state_dict(...)
 # use eval mode
 model.eval()
 # loss criterion

@@ -8,3 +8,5 @@ data/*
 *.png
 *.tgz
 hw4/output/*
+!hw5/categories.csv
+!hw5/labels.csv
