@@ -61,6 +61,7 @@ for id, (origin, trans) in enumerate(zip(X_origin, X_trans)):
     diff = trans - origin
     diff = np.absolute(diff)
     diff_max = np.max(diff)
+    print(diff_max)
     diff_avg = np.sum(diff) / (origin.shape[0]*origin.shape[1]*origin.shape[2])
     total_max += diff_max
 print('L-inf:', total_max/200.0)
