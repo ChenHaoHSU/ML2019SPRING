@@ -63,9 +63,9 @@ def inverse_transform(image):
 def trim_Linf(origin, trans):
     assert origin.shape == trans.shape
     diff = trans - origin
-    diff[diff > diff_max] = diff_max
-    diff[diff < -diff_max] = -diff_max
-    return origin + diff
+    clip = origin + np.clip(diff, -diff_max, diff_max)
+    print(np.max(trans - origin))
+    return clip
 
 # [1] load images
 X_train = load_input(input_dir)
@@ -84,7 +84,7 @@ criterion = nn.CrossEntropyLoss()
 acc_num = 0
 ## [3] Add noise to each image
 for i, (image, target_label) in enumerate(zip(X_train, Y_train)):
-    tensor_image = transform(image)
+    tensor_image = transform(image.copy())
     
     # set gradients to zero
     tensor_image.requires_grad = True
