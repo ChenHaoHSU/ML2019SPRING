@@ -10,8 +10,9 @@ from torch.autograd.gradcheck import zero_gradients
 import torch.utils.data as data
 from PIL import Image
 from scipy.misc import imsave
-from torchvision.models import vgg16, vgg19, resnet50, vgg16_bn,\
-                               resnet101, densenet121, densenet169
+from torchvision.models import vgg16, vgg19,\
+                               resnet50, resnet101,\
+                               densenet121, densenet169
 
 input_dir = sys.argv[1]
 label_fpath = 'labels.csv'
@@ -35,10 +36,13 @@ def load_labels(label_fpath):
     return Y_train
 
 def inverse_trasform(image):
-    image = image * 255.0
     image = image.squeeze(0)
+    normalize = transform.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225],
+                                     std=[1/0.229, 1/0.224, 1/0.225])
+    image = normalize(image)
     image = image.transpose(0,1)
     image = image.transpose(1,2)
+    image = image * 255.0
     return image
 
 def write_output(images, output_dir):
@@ -52,7 +56,7 @@ Y_train = load_labels(label_fpath)
 print('# [Info] Load {} labels'.format(len(X_train)))
 
 ## [2] Load pretrained model
-model = densenet169(pretrained=True)
+model = resnet50(pretrained=True)
 
 # use eval mode
 model.eval()
@@ -60,15 +64,17 @@ model.eval()
 criterion = nn.CrossEntropyLoss()
 
 acc_num = 0
-epsilon = 0.01
+epsilon = 0.04
 ## [3] Add noise to each image
 for i, (image, target_label) in enumerate(zip(X_train, Y_train)):
     image = image / 255.0
     trans = transform.Compose([transform.ToTensor()])
-    
+    normalize = transform.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
     image = trans(image)
-    image = image.unsqueeze(0)
     image = image.type('torch.FloatTensor')
+    image = normalize(image)
+    image = image.unsqueeze(0)
     image.requires_grad = True
     
     # set gradients to zero
@@ -81,20 +87,20 @@ for i, (image, target_label) in enumerate(zip(X_train, Y_train)):
     
     print('\r{:03}/{:03} ({:2.2f}%)'.format(acc_num, i+1, 100*acc_num/(i+1)), end="", flush=True)
 
-    # tensor_label = torch.LongTensor([target_label])
-    # # target = target.astype(double)
-    # loss = criterion(output, tensor_label)
-    # loss.backward() 
+    tensor_label = torch.LongTensor([target_label])
+    # target = target.astype(double)
+    loss = criterion(output, tensor_label)
+    loss.backward() 
     
-    # # add epsilon to image
-    # image = image - epsilon * image.grad.sign_()
+    # add epsilon to image
+    image = image + epsilon * image.grad.sign_()
 
-    # # do inverse transformation
-    # image = inverse_trasform(image)
+    # do inverse transformation
+    image = inverse_trasform(image)
     
-    # # save image
-    # output_fpath = os.path.join(output_dir, '{:03d}.png'.format(i))
-    # mm = image.detach().numpy()
-    # imsave(output_fpath, mm)
+    # save image
+    output_fpath = os.path.join(output_dir, '{:03d}.png'.format(i))
+    mm = image.detach().numpy()
+    imsave(output_fpath, mm)
 
 print(acc_num,'/',200)
