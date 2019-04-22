@@ -2,8 +2,18 @@ import sys
 import os
 import numpy as np
 import pandas as pd
+import torch 
+import torch.nn as nn
+import torchvision.transforms as transforms
+from torch.autograd.gradcheck import zero_gradients
+import torch.utils.data as data
 from PIL import Image
 from scipy.misc import imsave
+from torchvision.models import vgg16, vgg19,\
+                               resnet50, resnet101,\
+                               densenet121, densenet169
+
+PROXY_MODEL = resnet50
 
 input_dir = sys.argv[1]
 label_fpath = 'labels.csv'
@@ -26,6 +36,17 @@ def load_labels(label_fpath):
     Y_train = np.array(data['TrueLabel'].values, dtype=int)
     return Y_train
 
+def transform(image):
+    image = image / 255.0
+    trans = transforms.Compose([transforms.ToTensor()])
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+    image = trans(image)
+    image = image.type('torch.FloatTensor')
+    image = normalize(image)
+    image = image.unsqueeze(0)
+    return image
+
 X_origin = load_input(input_dir)
 print('# [Info] Load {} original images'.format(len(X_origin)))
 X_trans = load_input(output_dir)
@@ -41,7 +62,25 @@ for id, (origin, trans) in enumerate(zip(X_origin, X_trans)):
     diff = np.absolute(diff)
     diff_max = np.max(diff)
     diff_avg = np.sum(diff) / (origin.shape[0]*origin.shape[1]*origin.shape[2])
-    # print(diff_max, diff_avg)
     total_max += diff_max
-
 print('L-inf:', total_max/200.0)
+
+model = PROXY_MODEL(pretrained=True)
+model.eval()
+criterion = nn.CrossEntropyLoss()
+acc_num = 0
+## [3] Add noise to each image
+for i, (image, target_label) in enumerate(zip(X_trans, Y_train)):
+    tensor_image = transform(image)
+    
+    # set gradients to zero
+    tensor_image.requires_grad = True
+    zero_gradients(tensor_image)
+    
+    output = model(tensor_image)
+    argmax = np.argmax(output.detach().numpy())
+    if argmax == target_label:
+        acc_num += 1
+
+print('Success: {}/{} ({:2.2f}%)'.format(acc_num, 200, 100*(acc_num/200)))
+print('Failure: {}/{} ({:2.2f}%)'.format((200-acc_num), 200, 100*((200-acc_num)/200)))
