@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 hw5_fgsm.py $1 $2
+python3.6 hw5_fgsm.py $1 $2

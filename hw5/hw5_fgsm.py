@@ -24,12 +24,13 @@ def load_input(input_dir):
     for i in range(200):
         image_file = '{}/{:03d}.png'.format(input_dir, i)
         im = Image.open(image_file)
-        X_train.append(im)
-    return X_train
+        im_arr = np.array(im.getdata()).reshape(im.size[0], im.size[1], 3)
+        X_train.append(im_arr)
+    return np.array(X_train)
 
 def load_labels(label_fpath):
     data = pd.read_csv(label_fpath)
-    Y_train = np.array(data['TrueLabel'].values, dtype=str)
+    Y_train = np.array(data['TrueLabel'].values, dtype=int)
     return Y_train
     
 def write_output(images, output_dir):
@@ -40,7 +41,7 @@ def write_output(images, output_dir):
 X_train = load_input(input_dir)
 Y_train = load_labels(label_fpath)
 print('# Load {} images'.format(len(X_train)))
-print(Y_train)
+#print(Y_train)
 
 ## [2] Load pretrained model
 # using pretrain proxy model, ex. VGG16, VGG19...
@@ -48,11 +49,13 @@ model = vgg16(pretrained=True)
 # or load weights from .pt file
 # model = torch.load_state_dict(...)
 
+print(model)
+
 X_train = torch.FloatTensor(X_train)
 Y_train = torch.LongTensor(Y_train)
 # train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=8)
 
-print(model(X_train[0]))
+#print(model(X_train[0]))
 
 # use eval mode
 model.eval()
