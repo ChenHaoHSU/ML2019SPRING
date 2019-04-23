@@ -15,7 +15,6 @@ from torchvision.models import vgg16, vgg19,\
                                densenet121, densenet169
 
 PROXY_MODEL = resnet50
-DIFF_MAX = 5
 EPSILON = 0.1
 
 input_dir = sys.argv[1]
@@ -54,11 +53,6 @@ def inverse_transform(image):
     return image
 
 def trim_Linf(origin, trans):
-    assert origin.shape == trans.shape
-    diff = trans - origin
-    clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
-    clip = np.clip(clip, 0, 255)
-    clip = clip.astype(np.uint8)
     return clip
 
 # [1] load images
@@ -100,7 +94,7 @@ for i, image in enumerate(X_train):
 
     # trim L-inf
     output_image = output_image.astype(np.uint8)
-    output_image = trim_Linf(image, output_image)
+    output_image = np.clip(output_image, 0, 255)
     
     # save image
     output_fpath = os.path.join(output_dir, '{:03d}.png'.format(i))
