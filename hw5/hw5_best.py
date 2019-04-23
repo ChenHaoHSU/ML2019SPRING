@@ -57,7 +57,7 @@ def inverse_transform(image):
 
 # [1] load images
 X_train = load_input(input_dir)
-print('# [Info] Load {} images'.format(len(X_train)))
+print('# [Info] {} images loaded.'.format(len(X_train)))
 
 ## [2] Load pretrained model
 model = PROXY_MODEL(pretrained=True)

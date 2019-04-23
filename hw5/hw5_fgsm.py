@@ -52,12 +52,9 @@ def inverse_transform(image):
     image = image * 255.0
     return image
 
-def trim_Linf(origin, trans):
-    return clip
-
 # [1] load images
 X_train = load_input(input_dir)
-print('# [Info] Load {} images'.format(len(X_train)))
+print('# [Info] {} images loaded.'.format(len(X_train)))
 
 ## [2] Load pretrained model
 model = PROXY_MODEL(pretrained=True)
@@ -91,10 +88,8 @@ for i, image in enumerate(X_train):
 
     # trans to numpy.ndarray
     output_image = tensor_image.detach().numpy()
-
-    # trim L-inf
-    output_image = output_image.astype(np.uint8)
     output_image = np.clip(output_image, 0, 255)
+    output_image = output_image.astype(np.uint8)
     
     # save image
     output_fpath = os.path.join(output_dir, '{:03d}.png'.format(i))
