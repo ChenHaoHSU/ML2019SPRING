@@ -16,7 +16,7 @@ from torchvision.models import vgg16, vgg19,\
 
 PROXY_MODEL = resnet50
 DIFF_MAX = 5
-epsilon = 0.04
+EPSILON = 0.1
 
 input_dir = sys.argv[1]
 label_fpath = 'labels.csv'
@@ -33,11 +33,6 @@ def load_input(input_dir):
         im_arr = np.array(im.getdata()).reshape(im.size[0], im.size[1], 3)
         X_train.append(im_arr)
     return np.array(X_train)
-
-def load_labels(label_fpath):
-    data = pd.read_csv(label_fpath)
-    Y_train = np.array(data['TrueLabel'].values, dtype=int)
-    return Y_train
 
 def transform(image):
     image = image / 255.0
@@ -64,14 +59,13 @@ def trim_Linf(origin, trans):
     assert origin.shape == trans.shape
     diff = trans - origin
     clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
+    clip = np.clip(clip, 0, 255)
     clip = clip.astype(np.uint8)
     return clip
 
 # [1] load images
 X_train = load_input(input_dir)
 print('# [Info] Load {} images'.format(len(X_train)))
-Y_train = load_labels(label_fpath)
-print('# [Info] Load {} labels'.format(len(X_train)))
 
 ## [2] Load pretrained model
 model = PROXY_MODEL(pretrained=True)
@@ -81,9 +75,9 @@ model.eval()
 # loss criterion
 criterion = nn.CrossEntropyLoss()
 
-acc_num = 0
 ## [3] Add noise to each image
-for i, (image, target_label) in enumerate(zip(X_train, Y_train)):
+for i, image in enumerate(X_train):
+    print('\r> Processing image {}'.format(i), end="", flush=True)
     tensor_image = transform(image)
     
     # set gradients to zero
@@ -91,18 +85,14 @@ for i, (image, target_label) in enumerate(zip(X_train, Y_train)):
     zero_gradients(tensor_image)
     
     output = model(tensor_image)
-    argmax = np.argmax(output.detach().numpy())
-    if argmax == target_label:
-        acc_num += 1
+    target_label = np.argmax(output.detach().numpy())
     
-    print('\r{:03}/{:03} ({:2.2f}%)'.format(acc_num, i+1, 100*acc_num/(i+1)), end="", flush=True)
-
     tensor_label = torch.LongTensor([target_label])
     loss = criterion(output, tensor_label)
     loss.backward()
     
-    # add epsilon to image
-    tensor_image = tensor_image + epsilon * tensor_image.grad.sign_()
+    # add EPSILON to image
+    tensor_image = tensor_image + EPSILON * tensor_image.grad.sign_()
 
     # do inverse transformation
     tensor_image = inverse_transform(tensor_image)
@@ -119,3 +109,4 @@ for i, (image, target_label) in enumerate(zip(X_train, Y_train)):
     imsave(output_fpath, output_image)
 
 print("", flush=True)
+print("Done!")

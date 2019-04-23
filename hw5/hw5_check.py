@@ -26,7 +26,7 @@ def load_input(input_dir_):
     X_train = []
     for i in range(200):
         image_file = os.path.join(input_dir_, '{:03d}.png'.format(i))
-        print('\rLoading {}'.format(image_file), end="", flush=True)
+        print('\r> Loading \'{}\''.format(image_file), end="", flush=True)
         im = Image.open(image_file)
         im_arr = np.array(im.getdata()).reshape(im.size[0], im.size[1], 3)
         X_train.append(im_arr)
@@ -70,8 +70,6 @@ for i, (origin, trans) in enumerate(zip(X_origin, X_trans)):
     diff_avg = np.sum(diff) / (origin.shape[0]*origin.shape[1]*origin.shape[2])
     total_max += diff_max
 
-# for item in invalid:
-#     print(item)
 print('# Invalid:', len(invalid))
 print('L-inf:', total_max/200.0)
 
@@ -81,7 +79,7 @@ criterion = nn.CrossEntropyLoss()
 acc_num = 0
 ## [3] Add noise to each image
 for i, (image, target_label) in enumerate(zip(X_trans, Y_train)):
-    print('\rChecking {}'.format(i), end="", flush=True)
+    print('\r> Checking image {}'.format(i), end="", flush=True)
     tensor_image = transform(image)
     
     # set gradients to zero
