@@ -70,10 +70,18 @@ print('# [Info] Load {} images'.format(len(X_train)))
 ## [2] Load pretrained model
 model = PROXY_MODEL(pretrained=True)
 
+if torch.cuda.is_available():
+    print('GPU available!')
+    for i in range(torch.cuda.device_count()):
+        print('Device{}: {}'.format(i, torch.cuda.get_device_name(i)))
+    model.cuda()
+
 # use eval mode
 model.eval()
 # loss criterion
 criterion = nn.CrossEntropyLoss()
+
+from torch.autograd import Variable
 
 ## [3] Add noise to each image
 for i, image in enumerate(X_train):
@@ -84,15 +92,18 @@ for i, image in enumerate(X_train):
     tensor_image.requires_grad = True
     zero_gradients(tensor_image)
     
-    output = model(tensor_image)
-    target_label = np.argmax(output.detach().numpy())
-    
-    tensor_label = torch.LongTensor([target_label])
-    loss = criterion(output, tensor_label)
-    loss.backward()
-    
-    # add EPSILON to image
-    tensor_image = tensor_image + EPSILON * tensor_image.grad.sign_()
+    for iter in range(10):
+        epsilon = EPSILON / (iter+1)
+        output = model(tensor_image)
+        target_label = np.argmax(output.detach().numpy())
+
+        tensor_label = torch.LongTensor([target_label])
+        loss = criterion(output, tensor_label)
+        loss.backward()
+
+        # add epsilon to image
+        tensor_image = tensor_image + epsilon * tensor_image.grad.sign_()
+        tensor_image = Variable(tensor_image.data, requires_grad=True)
 
     # do inverse transformation
     tensor_image = inverse_transform(tensor_image)
