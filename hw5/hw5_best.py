@@ -57,8 +57,8 @@ def inverse_transform(image):
 def trim_Linf(origin, trans):
     assert origin.shape == trans.shape
     diff = trans - origin
-#     clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
-    clip = origin + diff
+    clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
+    # clip = origin + diff
     clip = np.clip(clip, 0, 255)
     clip = clip.astype(np.uint8)
     return clip
