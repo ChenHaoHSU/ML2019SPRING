@@ -50,9 +50,7 @@ for i, (origin, trans) in enumerate(zip(X_origin, X_trans)):
     assert origin.shape == trans.shape
     diff = trans - origin
     diff = np.absolute(diff)
-    diff_max = np.max(diff)
-    diff_avg = np.sum(diff) / (origin.shape[0]*origin.shape[1]*origin.shape[2])
-    total_max += diff_max
+    total_max += np.max(diff)
 print('L-inf:', total_max/200.0)
 
 model = PROXY_MODEL(pretrained=True)
