@@ -19,10 +19,8 @@ DIFF_MAX = 5
 EPSILON = 0.1
 
 input_dir = sys.argv[1]
-label_fpath = 'labels.csv'
 output_dir = sys.argv[2]
 print('# Input dir  : {}'.format(input_dir))
-print('# Label path : {}'.format(label_fpath))
 print('# Output dir : {}'.format(output_dir))
 
 def load_input(input_dir):
