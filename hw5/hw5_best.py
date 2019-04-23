@@ -1,6 +1,7 @@
 ## [1] Import packages
 import sys
 import os
+import random
 import numpy as np
 import pandas as pd
 import torch 
@@ -16,7 +17,7 @@ from torchvision.models import vgg16, vgg19,\
 
 PROXY_MODEL = resnet50
 DIFF_MAX = 5
-EPSILON = 0.1
+EPSILON = 0.08
 
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
@@ -56,7 +57,8 @@ def inverse_transform(image):
 def trim_Linf(origin, trans):
     assert origin.shape == trans.shape
     diff = trans - origin
-    clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
+#     clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
+    clip = origin + diff
     clip = np.clip(clip, 0, 255)
     clip = clip.astype(np.uint8)
     return clip
@@ -99,7 +101,6 @@ for i, image in enumerate(X_train):
     output_image = tensor_image.detach().numpy()
 
     # trim L-inf
-    output_image = output_image.astype(np.uint8)
     output_image = trim_Linf(image, output_image)
     
     # save image

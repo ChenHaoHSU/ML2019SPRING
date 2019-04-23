@@ -79,7 +79,6 @@ criterion = nn.CrossEntropyLoss()
 acc_num = 0
 ## [3] Add noise to each image
 for i, (image, target_label) in enumerate(zip(X_trans, Y_train)):
-    print('\r> Checking image {}'.format(i), end="", flush=True)
     tensor_image = transform(image)
     
     # set gradients to zero
@@ -90,6 +89,7 @@ for i, (image, target_label) in enumerate(zip(X_trans, Y_train)):
     argmax = np.argmax(output.detach().numpy())
     if argmax == target_label:
         acc_num += 1
+    print('\rAccuracy: {} / {}'.format(acc_num, i+1), end="", flush=True)
 
 print("", flush=True)
 print('Success: {}/{} ({:2.2f}%)'.format(acc_num, 200, 100*(acc_num/200)))
