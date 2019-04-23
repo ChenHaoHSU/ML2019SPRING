@@ -18,7 +18,7 @@ from torchvision.models import vgg16, vgg19,\
 
 PROXY_MODEL = resnet50
 DIFF_MAX = 100
-EPSILON = 0.08
+EPSILON = 0.06
 ITERATIONS = 50
 
 input_dir = sys.argv[1]
