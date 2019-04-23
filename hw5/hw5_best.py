@@ -17,8 +17,8 @@ from torchvision.models import vgg16, vgg19,\
                                densenet121, densenet169
 
 PROXY_MODEL = resnet50
-DIFF_MAX = 5
-EPSILON = 0.08
+DIFF_MAX = 3
+EPSILON = 0.04
 ITERATIONS = 20
 
 input_dir = sys.argv[1]
@@ -60,7 +60,6 @@ def trim_Linf(origin, trans):
     assert origin.shape == trans.shape
     diff = trans - origin
     clip = origin + np.clip(diff, -DIFF_MAX, DIFF_MAX)
-    # clip = origin + diff
     clip = np.clip(clip, 0, 255)
     clip = clip.astype(np.uint8)
     return clip
