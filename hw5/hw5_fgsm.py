@@ -14,9 +14,13 @@ from torchvision.models import vgg16, vgg19,\
                                resnet50, resnet101,\
                                densenet121, densenet169
 
+##########################
+# User-defined Parameters
+##########################
 PROXY_MODEL = resnet50
 EPSILON = 0.1
 
+# handle sys.argv
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
 print('# Input dir  : {}'.format(input_dir))
@@ -67,15 +71,19 @@ criterion = nn.CrossEntropyLoss()
 ## [3] Add noise to each image
 for i, image in enumerate(X_train):
     print('\r> Processing image {}'.format(i), end="", flush=True)
+
+    # transform the image to tensor
     tensor_image = transform(image)
     
     # set gradients to zero
     tensor_image.requires_grad = True
     zero_gradients(tensor_image)
     
+    # get the target label
     output = model(tensor_image)
     target_label = np.argmax(output.detach().numpy())
     
+    # calculate loss
     tensor_label = torch.LongTensor([target_label])
     loss = criterion(output, tensor_label)
     loss.backward()
@@ -95,5 +103,6 @@ for i, image in enumerate(X_train):
     output_fpath = os.path.join(output_dir, '{:03d}.png'.format(i))
     imsave(output_fpath, output_image)
 
+# done
 print("", flush=True)
 print("Done!")

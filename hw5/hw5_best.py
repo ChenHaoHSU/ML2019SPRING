@@ -16,10 +16,14 @@ from torchvision.models import vgg16, vgg19,\
                                resnet50, resnet101,\
                                densenet121, densenet169
 
+##########################
+# User-defined Parameters
+##########################
 PROXY_MODEL = resnet50
 EPSILON = 0.06
 ITERATIONS = 50
 
+# handle sys.argv
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
 print('# Input dir  : {}'.format(input_dir))
@@ -70,7 +74,11 @@ criterion = nn.CrossEntropyLoss()
 ## [3] Add noise to each image
 for i, image in enumerate(X_train):
     print('\r> Processing image {}'.format(i), end="", flush=True)
+
+    # transform the image to tensor
     tensor_image = transform(image)
+
+    # get the true label (ground truth)
     output = model(tensor_image)
     true_label = np.argmax(output.detach().numpy())
 
@@ -78,15 +86,21 @@ for i, image in enumerate(X_train):
     tensor_image.requires_grad = True
     zero_gradients(tensor_image)
 
+    # iterations
     for iter in range(ITERATIONS):
+        # update epsilon each iteration
         epsilon = EPSILON / (iter+1)
+
+        # get the current label
         output = model(tensor_image)
         current_label = np.argmax(output.detach().numpy())
 
+        # break the loop if the image has different labels
         if current_label != true_label:
             # print("\nEarly break {}".format(iter))
             break
 
+        # calculate loss
         tensor_label = torch.LongTensor([current_label])
         loss = criterion(output, tensor_label)
         loss.backward()
@@ -107,5 +121,6 @@ for i, image in enumerate(X_train):
     output_fpath = os.path.join(output_dir, '{:03d}.png'.format(i))
     imsave(output_fpath, output_image)
 
+# done
 print("", flush=True)
 print("Done!")
