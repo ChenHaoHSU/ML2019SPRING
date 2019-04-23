@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import torch 
 import torch.nn as nn
+from torch.autograd import Variable
 import torchvision.transforms as transforms
 from torch.autograd.gradcheck import zero_gradients
 import torch.utils.data as data
@@ -80,8 +81,6 @@ if torch.cuda.is_available():
 model.eval()
 # loss criterion
 criterion = nn.CrossEntropyLoss()
-
-from torch.autograd import Variable
 
 ## [3] Add noise to each image
 for i, image in enumerate(X_train):
