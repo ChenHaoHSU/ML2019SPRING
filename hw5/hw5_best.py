@@ -17,9 +17,9 @@ from torchvision.models import vgg16, vgg19,\
                                densenet121, densenet169
 
 PROXY_MODEL = resnet50
-DIFF_MAX = 3
-EPSILON = 0.04
-ITERATIONS = 20
+DIFF_MAX = 100
+EPSILON = 0.08
+ITERATIONS = 50
 
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
