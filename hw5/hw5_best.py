@@ -19,6 +19,7 @@ from torchvision.models import vgg16, vgg19,\
 PROXY_MODEL = resnet50
 DIFF_MAX = 5
 EPSILON = 0.08
+ITERATIONS = 20
 
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
@@ -71,12 +72,6 @@ print('# [Info] Load {} images'.format(len(X_train)))
 ## [2] Load pretrained model
 model = PROXY_MODEL(pretrained=True)
 
-if torch.cuda.is_available():
-    print('GPU available!')
-    for i in range(torch.cuda.device_count()):
-        print('Device{}: {}'.format(i, torch.cuda.get_device_name(i)))
-    model.cuda()
-
 # use eval mode
 model.eval()
 # loss criterion
@@ -86,17 +81,23 @@ criterion = nn.CrossEntropyLoss()
 for i, image in enumerate(X_train):
     print('\r> Processing image {}'.format(i), end="", flush=True)
     tensor_image = transform(image)
-    
+    output = model(tensor_image)
+    true_label = np.argmax(output.detach().numpy())
+
     # set gradients to zero
     tensor_image.requires_grad = True
     zero_gradients(tensor_image)
-    
-    for iter in range(10):
+
+    for iter in range(ITERATIONS):
         epsilon = EPSILON / (iter+1)
         output = model(tensor_image)
-        target_label = np.argmax(output.detach().numpy())
+        current_label = np.argmax(output.detach().numpy())
 
-        tensor_label = torch.LongTensor([target_label])
+        if current_label != true_label:
+            # print("\nEarly break {}".format(iter))
+            break
+
+        tensor_label = torch.LongTensor([current_label])
         loss = criterion(output, tensor_label)
         loss.backward()
 
