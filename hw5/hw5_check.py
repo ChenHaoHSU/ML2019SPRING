@@ -62,7 +62,7 @@ for i, (image, target_label) in enumerate(zip(X_trans, Y_train)):
     trans = transforms.Compose([transforms.ToTensor()])
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
-    tensor_image = trans(image)
+    tensor_image = trans(tensor_image)
     tensor_image = tensor_image.type('torch.FloatTensor')
     tensor_image = normalize(tensor_image)
     tensor_image = tensor_image.unsqueeze(0)
