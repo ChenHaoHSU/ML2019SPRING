@@ -10,3 +10,5 @@ data/*
 hw4/output/*
 !hw5/categories.csv
 !hw5/labels.csv
+*.model
+*.h5
