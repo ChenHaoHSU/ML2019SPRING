@@ -78,22 +78,23 @@ print('# [Info] W2V model.')
 w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=4, min_count=1, workers=4)
 w2v_model.save(w2v_fpath)
 
+print('Converting texts to vectors...')
+X_train = np.zeros((len(X_train_list), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
+for n in range(len(X_train_list)):
+    for i in range(min(len(X_train_list[n]), MAX_SEQUENCE_LENGTH)):
+        try:
+            print ('Word', X_train_list[n][i], 'is in dictionary.')
+            vector = w2v_model[X_train_list[n][i]]
+            X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+        except KeyError as e:
+            # print ('Word', X_train_list[n][i], 'is not in dictionary.')
+
 ''' Split validation set '''
 print('# [Info] Splitting training data into train and val set...')
 val_ratio = 0.01
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
 assert len(X_train) == len(Y_train) and len(X_val) == len(Y_val)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
-
-print('Converting texts to vectors...')
-X_train = np.zeros((len(X_train_list), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
-for n in range(len(X_train_list)):
-    for i in range(min(len(X_train_list[n]), MAX_SEQUENCE_LENGTH)):
-        try:
-            vector = w2v_model[X_train_list[n][i]]
-            X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
-        except KeyError as e:
-            print ('Word', X_train_list[n][i], 'is not in dictionary.')
 
 print('Shape of X_train tensor:', X_train.shape)
 print('Shape of Y_train tensor:', Y_train.shape)
