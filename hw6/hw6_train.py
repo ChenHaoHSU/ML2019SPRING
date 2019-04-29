@@ -87,6 +87,7 @@ for n in range(len(X_train_list)):
             vector = w2v_model[X_train_list[n][i]]
             X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
         except KeyError as e:
+            pass
             # print ('Word', X_train_list[n][i], 'is not in dictionary.')
 
 ''' Split validation set '''
