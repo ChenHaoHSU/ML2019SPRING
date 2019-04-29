@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import ZeroPadding2D, BatchNormalization
-from keras.layers import GRU, LSTM
+from keras.layers import GRU, LSTM, Input
 from keras.optimizers import SGD, Adam
 from keras.utils import np_utils, to_categorical
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
@@ -71,11 +71,26 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 ''' Load dict.txt '''
 print('# [Info] Loading txt dict...')
 jieba.load_userdict(dict_fpath)
-X_train_list = [ [ word for word in list(jieba.cut(sent, cut_all=False) if word not in [' '])] for sent in X_train ]
+X_train_list = []
+filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
+for sent in X_train:
+    tmp_list = []
+    for c in filters:
+        sent = sent.replace(c, '')
+    for word in list(jieba.cut(sent, cut_all=False)):
+        if word[0] == 'B': continue
+        tmp_list.append(word)
+    X_train_list.append(tmp_list)
+tmp_list = []
+
+# X_train_list = [ [ word for word in list(jieba.cut(sent, cut_all=False)) if word not in [' ']] for sent in X_train ]
+print(X_train_list[0:10])
+print(len(X_train_list))
 
 ''' word2vec '''
 print('# [Info] W2V model.')
-w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=5, min_count=1, workers=4)
+w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=5, min_count=3, workers=8, iter=20)
+print(w2v_model)
 w2v_model.save(w2v_fpath)
 
 print('Converting texts to vectors...')
@@ -83,9 +98,10 @@ X_train = np.zeros((len(X_train_list), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
 for n in range(len(X_train_list)):
     for i in range(min(len(X_train_list[n]), MAX_SEQUENCE_LENGTH)):
         try:
-            print ('Word', X_train_list[n][i], 'is in dictionary.')
+            # print ('Word', X_train_list[n][i], 'is in dictionary.')
             vector = w2v_model[X_train_list[n][i]]
-            X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+            X_train[n][i] = vector
+            #X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
         except KeyError as e:
             pass
             # print ('Word', X_train_list[n][i], 'is not in dictionary.')
@@ -104,22 +120,36 @@ print('Shape of Y_train tensor:', Y_train.shape)
 dropout = 0.25
 print('# [Info] Building model...')
 model = Sequential()
-model.add(GRU(units=128, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), dropout=0.1, recurrent_dropout=0.1))
-model.add(Dense(units=256, kernel_initializer='glorot_normal'))
+model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), 
+                return_sequences=True, activation='tanh'))
+model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
+                return_sequences=True, activation='tanh'))
+model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
+                return_sequences=False, activation='tanh'))
+model.add(Dropout(0.3))
+model.add(Dense(512, activation='relu'))
 model.add(BatchNormalization())
-model.add(Activation('relu'))
-model.add(Dropout(0.2))
+model.add(Dropout(0.4))
+model.add(Dense(256, activation='relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+model.add(Dense(128, activation='relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
 model.add(Dense(2, activation='softmax'))
+
+model.compile(loss='binary_crossentropy',
+                  optimizer='Adam', metrics=['accuracy'])
 
 ''' Print model summary '''
 model.summary()
 
 ''' Compile model '''
 print('# [Info] Compling model...')
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 ''' Train Train Train '''
-BATCH_SIZE = 128
+BATCH_SIZE = 100 
 EPOCHS = 16
 # train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1)
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
