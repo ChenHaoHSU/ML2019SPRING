@@ -71,11 +71,11 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 ''' Load dict.txt '''
 print('# [Info] Loading txt dict...')
 jieba.load_userdict(dict_fpath)
-X_train_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_train ]
+X_train_list = [ [ word for word in list(jieba.cut(sent, cut_all=False) if word not in [' '])] for sent in X_train ]
 
 ''' word2vec '''
 print('# [Info] W2V model.')
-w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=4, min_count=1, workers=4)
+w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=5, min_count=1, workers=4)
 w2v_model.save(w2v_fpath)
 
 print('Converting texts to vectors...')
