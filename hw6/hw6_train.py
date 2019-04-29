@@ -17,6 +17,7 @@ from keras.models import load_model
 
 import jieba
 from gensim.models import Word2Vec
+import emoji
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
@@ -67,43 +68,13 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 ''' Load dict.txt '''
 print('# [Info] Loading txt dict...')
 jieba.load_userdict(dict_fpath)
-X_train_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_train ]
+X_train_list = [ list(jieba.cut(sent), cut_all=False) for sent in X_train ]
+print(X_train_list[0])
 
-word_dict = dict()
-X_train = []
-cnt = 0
-for i, sentence in enumerate(X_train_list):
-    if i > int(len(X_train_list) * (1.0 - 0.1)): continue
-    for j, word in enumerate(sentence):
-        if word[0] == 'B': continue
-        if word in [' ', '  ', '']: continue
-        if word not in word_dict:
-            word_dict[word] = cnt
-            cnt += 1
-
-X_train = np.zeros((len(X_train_list), len(word_dict)), dtype=int)
-for i, sentence in enumerate(X_train_list):
-    vec = np.zeros(len(word_dict))
-    for j, word in enumerate(sentence):
-        if word in word_dict:
-            X_train[i, word_dict[word]] += 1
-print(X_train.shape)
-
-# X_test = load_X('../data/hw6/test_x.csv')
-# X_test_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_test ]
-# model = load_model(model_fpath)
-# X_test = np.zeros((len(X_test_list), len(word_dict)), dtype=int)
-# for i, sentence in enumerate(X_test_list):
-#     vec = np.zeros(len(word_dict))
-#     for j, word in enumerate(sentence):
-#         if word in word_dict:
-#             X_test[i, word_dict[word]] += 1
-# prediction = model.predict(X_test)
-# with open('output.csv', 'w') as f:
-#     f.write('id,label\n')
-#     for i, v in enumerate(prediction):
-#         f.write('%d,%d\n' %(i, np.argmax(v)))
-# sys.exit()
+common_texts = [[]]
+model = Word2Vec(size=1000, window=5, min_count=1, workers=4)
+model.train(X_train_list, total_examples=len(X_train_list), epochs=20)
+model.save("word2vec.model")
 
 ''' Split validation set '''
 print('# [Info] Splitting training data into train and val set...')
@@ -111,6 +82,8 @@ val_ratio = 0.01
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
 assert len(X_train) == len(Y_train) and len(X_val) == len(Y_val)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
+
+sys.exit()
 
 ''' Build model '''
 dropout = 0.25
