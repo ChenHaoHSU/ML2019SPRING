@@ -18,6 +18,10 @@ import jieba
 from gensim.models import word2vec
 import emoji
 
+MAX_SEQUENCE_LENGTH = 39
+EMBEDDING_DIM = 100
+MAX_NB_WORDS = 8192
+
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
 X_train_fpath = sys.argv[1]
@@ -68,13 +72,11 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 print('# [Info] Loading txt dict...')
 jieba.load_userdict(dict_fpath)
 X_train_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_train ]
-print(X_train_list[0])
 
 ''' word2vec '''
-common_texts = [[]]
-model = word2vec.Word2Vec(size=100, window=4, min_count=1, workers=4)
-model.train(X_train_list, total_examples=len(X_train_list), epochs=20)
-model.save(w2v_fpath)
+print('# [Info] W2V model.')
+w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=4, min_count=1, workers=4)
+w2v_model.save(w2v_fpath)
 
 ''' Split validation set '''
 print('# [Info] Splitting training data into train and val set...')
@@ -83,20 +85,28 @@ X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
 assert len(X_train) == len(Y_train) and len(X_val) == len(Y_val)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
-sys.exit()
+print('Converting texts to vectors...')
+X_train = np.zeros((len(X_train_list), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
+for n in range(len(X_train_list)):
+    for i in range(min(len(X_train_list[n]), MAX_SEQUENCE_LENGTH)):
+        try:
+            vector = w2v_model[X_train_list[n][i]]
+            X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+        except KeyError as e:
+            print ('Word', X_train_list[n][i], 'is not in dictionary.')
+
+print('Shape of X_train tensor:', X_train.shape)
+print('Shape of Y_train tensor:', Y_train.shape)
 
 ''' Build model '''
 dropout = 0.25
-neurons = [256, 128, 128]
 print('# [Info] Building model...')
 model = Sequential()
-model.add(Dense(units=256, input_dim=len(word_dict), activation='relu'))
+model.add(GRU(units=128, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), dropout=0.1, recurrent_dropout=0.1))
+model.add(Dense(units=256, kernel_initializer='glorot_normal'))
 model.add(BatchNormalization())
-model.add(Dropout(dropout))
-for neuron in neurons:
-    model.add(Dense(neuron, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(dropout))
+model.add(Activation('relu'))
+model.add(Dropout(0.2))
 model.add(Dense(2, activation='softmax'))
 
 ''' Print model summary '''
@@ -107,8 +117,8 @@ print('# [Info] Compling model...')
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 ''' Train Train Train '''
-BATCH_SIZE = 100
-EPOCHS = 20
+BATCH_SIZE = 128
+EPOCHS = 16
 # train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1)
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
 
