@@ -12,11 +12,10 @@ from keras.utils import np_utils, to_categorical
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
-
 from keras.models import load_model
 
 import jieba
-from gensim.models import Word2Vec
+from gensim.models import word2vec
 import emoji
 
 ''' Handle argv '''
@@ -68,13 +67,14 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 ''' Load dict.txt '''
 print('# [Info] Loading txt dict...')
 jieba.load_userdict(dict_fpath)
-X_train_list = [ list(jieba.cut(sent), cut_all=False) for sent in X_train ]
+X_train_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_train ]
 print(X_train_list[0])
 
+''' word2vec '''
 common_texts = [[]]
-model = Word2Vec(size=1000, window=5, min_count=1, workers=4)
+model = word2vec.Word2Vec(size=100, window=4, min_count=1, workers=4)
 model.train(X_train_list, total_examples=len(X_train_list), epochs=20)
-model.save("word2vec.model")
+model.save(w2v_fpath)
 
 ''' Split validation set '''
 print('# [Info] Splitting training data into train and val set...')
