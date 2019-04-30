@@ -52,13 +52,15 @@ def load_Y(fpath):
     return np.array(data['label'].values, dtype=int)
 
 def split_train_val(X, Y, val_ratio, shuffle=False):
-    assert len(X) == len(Y)
+    print(type(X))
+    print(type(Y))
+    #assert X.shape[0] == Y.shape[0]
     if shuffle == True:
         indices = np.arange(len(X))
         np.random.shuffle(indices)
         X = X[indices]
         Y = Y[indices]
-    train_len = int(len(X) * (1.0 - val_ratio))
+    train_len = int(X.shape[0] * (1.0 - val_ratio))
     return X[:train_len], Y[:train_len], X[train_len:], Y[train_len:]
 
 def segment(X):
@@ -77,7 +79,7 @@ def segment(X):
 
 def w2v(X_seg):
     print('# [Info] W2V model.')
-    w2v_model = word2vec.Word2Vec(size=EMBEDDING_DIM, window=5, min_count=3, workers=8, iter=20)
+    w2v_model = word2vec.Word2Vec(X_seg, size=EMBEDDING_DIM, window=5, min_count=3, workers=8, iter=20)
     w2v_model.save(w2v_fpath)
     print(w2v_model)
     print(w2v_model.wv.vocab)
@@ -86,13 +88,13 @@ def w2v(X_seg):
     for n in range(len(X_seg)):
         for i in range(min(len(X_seg[n]), MAX_SEQUENCE_LENGTH)):
             try:
-                # print ('Word', X_seg[n][i], 'is in dictionary.')
                 vector = w2v_model[X_seg[n][i]]
                 X_train[n][i] = vector
                 #X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
                 # print ('Word', X_seg[n][i], 'is not in dictionary.')
+    return X_train
 
 dropout = 0.25
 def new_model():
@@ -144,7 +146,7 @@ X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
 assert len(X_train) == len(Y_train) and len(X_val) == len(Y_val)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
-model = new_model()
+model = new_model2()
 model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
