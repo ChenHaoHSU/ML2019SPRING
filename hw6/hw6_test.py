@@ -9,14 +9,17 @@ from gensim.models import word2vec
 X_test_fpath = sys.argv[1]
 dict_fpath = sys.argv[2]
 output_fpath = sys.argv[3]
-w2v_fpath = sys.argv[5]
-model_fpath = sys.argv[6]
+w2v_fpath = sys.argv[4]
+model_fpath = sys.argv[5]
 print('# [Info] Argv')
 print('    - X test file  : {}'.format(X_test_fpath))
 print('    - Dict file    : {}'.format(dict_fpath))
 print('    = Output file  : {}'.format(output_fpath))
 print('    - W2V file     : {}'.format(w2v_fpath))
 print('    - Model file   : {}'.format(model_fpath))
+
+MAX_LENGTH = 40
+EMBEDDING_DIM = 100
 
 def load_X(fpath):
     data = pd.read_csv(fpath)
@@ -38,7 +41,7 @@ def segment(X):
 
 def w2v(X_seg):
     print('# [Info] Loading W2V model...')
-    w2v_model.load(w2v_fpath)
+    w2v_model = word2vec.Word2Vec.load(w2v_fpath)
     print('# [Info] Converting texts to vectors...')
     X_train = np.zeros((len(X_seg), MAX_LENGTH, EMBEDDING_DIM))
     for n in range(len(X_seg)):

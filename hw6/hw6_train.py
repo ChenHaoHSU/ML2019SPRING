@@ -91,17 +91,16 @@ def w2v(X_seg):
                 # print ('Word', X_seg[n][i], 'is not in dictionary.')
     return X_train
 
-def new_model2():
+def new_model():
     print('# [Info] Building model...')
     DROPOUT = 0.2
     model = Sequential()
-    model.add(GRU(units=256, input_shape=(MAX_LENGTH, EMBEDDING_DIM), dropout=0.1))
-    # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), 
-    #                 return_sequences=True, activation='tanh'))
-    # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
-    #                 return_sequences=True, activation='tanh'))
-    # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
-    #                 return_sequences=False, activation='tanh'))
+    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_LENGTH, EMBEDDING_DIM), 
+                   return_sequences=True, activation='tanh'))
+    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
+                   return_sequences=True, activation='tanh'))
+    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
+                   return_sequences=False, activation='tanh'))
     neurons = [512, 256, 128]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
@@ -123,11 +122,11 @@ X_seg = segment(X_train)
 print('# [Info] Word to Vector...')
 X_train = w2v(X_seg)
 print('# [Info] Splitting training data into train and val set...')
-val_ratio = 0.01
+val_ratio = 0.1
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
-model = new_model2()
+model = new_model()
 model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
