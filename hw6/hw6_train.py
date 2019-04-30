@@ -82,17 +82,17 @@ def w2v(X_seg):
     print(w2v_model)
     print(w2v_model.wv.vocab)
     print('Converting texts to vectors...')
-    X_train = np.zeros((len(X_train_list), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
-    for n in range(len(X_train_list)):
-        for i in range(min(len(X_train_list[n]), MAX_SEQUENCE_LENGTH)):
+    X_train = np.zeros((len(X_seg), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
+    for n in range(len(X_seg)):
+        for i in range(min(len(X_seg[n]), MAX_SEQUENCE_LENGTH)):
             try:
-                # print ('Word', X_train_list[n][i], 'is in dictionary.')
-                vector = w2v_model[X_train_list[n][i]]
+                # print ('Word', X_seg[n][i], 'is in dictionary.')
+                vector = w2v_model[X_seg[n][i]]
                 X_train[n][i] = vector
                 #X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
-                # print ('Word', X_train_list[n][i], 'is not in dictionary.')
+                # print ('Word', X_seg[n][i], 'is not in dictionary.')
 
 dropout = 0.25
 def new_model():
