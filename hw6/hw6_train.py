@@ -21,7 +21,6 @@ import emoji
 
 MAX_LENGTH = 40
 EMBEDDING_DIM = 100
-MAX_NB_WORDS = 8192
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
