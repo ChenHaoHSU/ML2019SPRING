@@ -96,7 +96,7 @@ def new_model2():
     print('# [Info] Building model...')
     DROPOUT = 0.2
     model = Sequential()
-    model.add(GRU(units=256, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), dropout=0.1))
+    model.add(GRU(units=256, input_shape=(MAX_LENGTH, EMBEDDING_DIM), dropout=0.1))
     # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), 
     #                 return_sequences=True, activation='tanh'))
     # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
