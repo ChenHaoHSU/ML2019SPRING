@@ -19,7 +19,7 @@ import jieba
 from gensim.models import word2vec
 import emoji
 
-MAX_SEQUENCE_LENGTH = 39
+MAX_LENGTH = 40
 EMBEDDING_DIM = 100
 MAX_NB_WORDS = 8192
 
@@ -52,9 +52,7 @@ def load_Y(fpath):
     return np.array(data['label'].values, dtype=int)
 
 def split_train_val(X, Y, val_ratio, shuffle=False):
-    print(type(X))
-    print(type(Y))
-    #assert X.shape[0] == Y.shape[0]
+    assert X.shape[0] == Y.shape[0]
     if shuffle == True:
         indices = np.arange(len(X))
         np.random.shuffle(indices)
@@ -79,14 +77,12 @@ def segment(X):
 
 def w2v(X_seg):
     print('# [Info] W2V model.')
-    w2v_model = word2vec.Word2Vec(X_seg, size=EMBEDDING_DIM, window=5, min_count=3, workers=8, iter=20)
+    w2v_model = word2vec.Word2Vec(X_seg, size=EMBEDDING_DIM, window=5, min_count=2, workers=4, iter=20)
     w2v_model.save(w2v_fpath)
-    print(w2v_model)
-    print(w2v_model.wv.vocab)
     print('Converting texts to vectors...')
-    X_train = np.zeros((len(X_seg), MAX_SEQUENCE_LENGTH, EMBEDDING_DIM))
+    X_train = np.zeros((len(X_seg), MAX_LENGTH, EMBEDDING_DIM))
     for n in range(len(X_seg)):
-        for i in range(min(len(X_seg[n]), MAX_SEQUENCE_LENGTH)):
+        for i in range(min(len(X_seg[n]), MAX_LENGTH)):
             try:
                 vector = w2v_model[X_seg[n][i]]
                 X_train[n][i] = vector
@@ -96,35 +92,22 @@ def w2v(X_seg):
                 # print ('Word', X_seg[n][i], 'is not in dictionary.')
     return X_train
 
-dropout = 0.25
-def new_model():
-    model = Sequential()
-    model.add(embedding_layer)
-    model.add(GRU(16))    
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(2, activation='softmax'))
-    return model
-
 def new_model2():
     print('# [Info] Building model...')
+    DROPOUT = 0.2
     model = Sequential()
-    model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), 
-                    return_sequences=True, activation='tanh'))
-    model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
-                    return_sequences=True, activation='tanh'))
-    model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
-                    return_sequences=False, activation='tanh'))
-    model.add(Dropout(0.3))
-    model.add(Dense(512, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
-    model.add(Dense(256, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
-    model.add(Dense(128, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
+    model.add(GRU(units=256, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), dropout=0.1))
+    # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM), 
+    #                 return_sequences=True, activation='tanh'))
+    # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
+    #                 return_sequences=True, activation='tanh'))
+    # model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2,
+    #                 return_sequences=False, activation='tanh'))
+    neurons = [512, 256, 128]
+    for neuron in neurons:
+        model.add(Dense(neuron, activation='relu'))
+        model.add(BatchNormalization())
+        model.add(Dropout(DROPOUT))
     model.add(Dense(2, activation='softmax'))
     return model
 
@@ -133,17 +116,16 @@ print('# [Info] Loading training data...')
 X_train = load_X(X_train_fpath)
 Y_train = load_Y(Y_train_fpath)
 Y_train = np_utils.to_categorical(Y_train, 2)
-assert len(X_train) == len(Y_train)
 print('# [Info] {} training data loaded.'.format(len(X_train)))
 
-''' Load dict.txt '''
+''' Preprocess '''
 print('# [Info] Loading txt dict...')
 X_seg = segment(X_train)
+print('# [Info] Word to Vector...')
 X_train = w2v(X_seg)
 print('# [Info] Splitting training data into train and val set...')
 val_ratio = 0.01
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
-assert len(X_train) == len(Y_train) and len(X_val) == len(Y_val)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
 model = new_model2()
