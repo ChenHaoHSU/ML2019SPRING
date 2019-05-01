@@ -44,8 +44,7 @@ def text_segmentation(X_train):
     
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
-    w2v_model = word2vec.Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
-    w2v_model.save(w2v_fpath)
+    w2v_model = word2vec.Word2Vec.load(w2v_fpath)
     X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
     for i in range(len(X_segment)):
         print('\r#   - Converting texts to vectors ({} / {})'.format(i+1, len(X_segment)), end='', flush=True)
