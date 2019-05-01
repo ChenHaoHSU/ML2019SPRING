@@ -65,6 +65,7 @@ def text_segmentation(X_train):
     jieba.load_userdict(dict_fpath)
     X_segment = []
     filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
+    filters = ''
     for i, sent in enumerate(X_train):
         print('\r#   - Segmenting ({} / {})'.format(i+1, len(X_train)), end='', flush=True)
         tmp_list = []
