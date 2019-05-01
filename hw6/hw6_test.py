@@ -29,13 +29,9 @@ def text_segmentation(X_train):
     print('# [Info] Segmenting text...')
     jieba.load_userdict(dict_fpath)
     X_segment = []
-    filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
-    filters = ''
     for i, sent in enumerate(X_train):
         print('\r#   - Segmenting ({} / {})'.format(i+1, len(X_train)), end='', flush=True)
         tmp_list = []
-        for c in filters:
-            sent = sent.replace(c, '')
         for word in list(jieba.cut(sent, cut_all=False)):
             if word[0] == 'B': continue
             tmp_list.append(word)
