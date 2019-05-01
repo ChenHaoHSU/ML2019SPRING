@@ -60,47 +60,51 @@ def split_train_val(X, Y, val_ratio, shuffle=False):
     train_len = int(X.shape[0] * (1.0 - val_ratio))
     return X[:train_len], Y[:train_len], X[train_len:], Y[train_len:]
 
-def segment(X):
+def text_segmentation(X_train):
+    print('# [Info] Segmenting text...')
     jieba.load_userdict(dict_fpath)
-    X_seg = []
+    X_segment = []
     filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
-    for sent in X:
+    for i, sent in enumerate(X_train):
+        print('#   - Segmenting ({} / {})'.format(i, len(X_train)), end='', flush=True)
         tmp_list = []
         for c in filters:
             sent = sent.replace(c, '')
         for word in list(jieba.cut(sent, cut_all=False)):
             if word[0] == 'B': continue
             tmp_list.append(word)
-        X_seg.append(tmp_list)
-    return X_seg
+        X_segment.append(tmp_list)
+    return X_segment
 
-def w2v(X_seg):
-    print('# [Info] W2V model.')
-    w2v_model = word2vec.Word2Vec(X_seg, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
+def word_to_vector(X_segment):
+    print('# [Info] Building W2V model.')
+    w2v_model = word2vec.Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
     w2v_model.save(w2v_fpath)
-    print('Converting texts to vectors...')
-    X_train = np.zeros((len(X_seg), MAX_LENGTH, EMBEDDING_DIM))
-    for n in range(len(X_seg)):
-        for i in range(min(len(X_seg[n]), MAX_LENGTH)):
+    X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
+    for i in range(len(X_segment)):
+        print('#   - Converting texts to vectors ({} / {})'.format(i, len(X_segment)), end='', flush=True)
+        for j in range(min(len(X_segment[i]), MAX_LENGTH)):
             try:
-                vector = w2v_model[X_seg[n][i]]
-                # X_train[n][i] = vector
-                X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+                vector = w2v_model[X_segment[i][j]]
+                # X_train[i][j] = vector
+                X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
-                # print ('Word', X_seg[n][i], 'is not in dictionary.')
+                # print ('Word', X_segment[n][i], 'is not in dictionary.')
+    print('', flush=True)
     return X_train
 
 def new_model():
     print('# [Info] Building model...')
     DROPOUT = 0.2
     model = Sequential()
-    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_LENGTH, EMBEDDING_DIM), 
-                   return_sequences=True, activation='relu'))
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                   return_sequences=True, activation='relu'))
+                  return_sequences=True, activation='relu',
+                  input_shape=(MAX_LENGTH, EMBEDDING_DIM)))
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                   return_sequences=False, activation='relu'))
+                  return_sequences=True, activation='relu'))
+    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
+                  return_sequences=False, activation='relu'))
     neurons = [512, 256, 128]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
@@ -110,20 +114,21 @@ def new_model():
     return model
 
 ''' Load training data '''
-print('# [Info] Loading training data...')
 X_train = load_X(X_train_fpath)
 Y_train = load_Y(Y_train_fpath)
-Y_train = np_utils.to_categorical(Y_train, 2)
+assert X_train.shape[0] == Y_train.shape[0]
 print('# [Info] {} training data loaded.'.format(len(X_train)))
 
 ''' Preprocess '''
-print('# [Info] Loading txt dict...')
-X_seg = segment(X_train)
-print('# [Info] Word to Vector...')
-X_train = w2v(X_seg)
-print('# [Info] Splitting training data into train and val set...')
-val_ratio = 0.1
-X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, val_ratio)
+# X
+X_segment = text_segmentation(X_train)
+X_train = word_to_vector(X_segment)
+# Y
+Y_train = np_utils.to_categorical(Y_train, 2)
+
+''' Validation set '''
+VAL_RATIO = 0.1
+X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
 model = new_model()
