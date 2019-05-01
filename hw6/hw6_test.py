@@ -25,45 +25,52 @@ def load_X(fpath):
     data = pd.read_csv(fpath)
     return np.array(data['comment'].values, dtype=str)
 
-def segment(X):
+def text_segmentation(X_train):
+    print('# [Info] Segmenting text...')
     jieba.load_userdict(dict_fpath)
-    X_seg = []
+    X_segment = []
     filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
-    for sent in X:
+    for i, sent in enumerate(X_train):
+        print('\r#   - Segmenting ({} / {})'.format(i+1, len(X_train)), end='', flush=True)
         tmp_list = []
         for c in filters:
             sent = sent.replace(c, '')
         for word in list(jieba.cut(sent, cut_all=False)):
             if word[0] == 'B': continue
             tmp_list.append(word)
-        X_seg.append(tmp_list)
-    return X_seg
-
-def w2v(X_seg):
-    print('# [Info] Loading W2V model...')
-    w2v_model = word2vec.Word2Vec.load(w2v_fpath)
-    print('# [Info] Converting texts to vectors...')
-    X_train = np.zeros((len(X_seg), MAX_LENGTH, EMBEDDING_DIM))
-    for n in range(len(X_seg)):
-        for i in range(min(len(X_seg[n]), MAX_LENGTH)):
+        X_segment.append(tmp_list)
+    print('', flush=True)
+    return X_segment
+    
+def word_to_vector(X_segment):
+    print('# [Info] Building W2V model...')
+    w2v_model = word2vec.Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
+    w2v_model.save(w2v_fpath)
+    X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
+    for i in range(len(X_segment)):
+        print('\r#   - Converting texts to vectors ({} / {})'.format(i+1, len(X_segment)), end='', flush=True)
+        for j in range(min(len(X_segment[i]), MAX_LENGTH)):
             try:
-                vector = w2v_model[X_seg[n][i]]
-                # X_train[n][i] = vector
-                X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+                vector = w2v_model[X_segment[i][j]]
+                # X_train[i][j] = vector
+                X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
-                # print ('Word', X_seg[n][i], 'is not in dictionary.')
+                # print ('Word', X_segment[n][i], 'is not in dictionary.')
+    print('', flush=True)
     return X_train
 
-print('# [Info] Loading testing data...')
+''' Load testing data '''
 X_test = load_X(X_test_fpath)
-print('# [Info] Loading txt dict...')
-X_seg = segment(X_test)
-print('# [Info] Word to vector...')
-X_test = w2v(X_seg)
+print('# [Info] {} testing data loaded.'.format(len(X_test)))
+
+''' Preprocess '''
+X_segment = text_segmentation(X_test)
+X_test = word_to_vector(X_segment)
+
+''' Prediction and Output '''
 print('# [Info] Loading model...')
 model = load_model(model_fpath)
-
 prediction = model.predict(X_test)
 print('# [Info] Output...')
 with open(output_fpath, 'w') as f:

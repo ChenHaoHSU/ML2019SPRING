@@ -121,10 +121,9 @@ assert X_train.shape[0] == Y_train.shape[0]
 print('# [Info] {} training data loaded.'.format(len(X_train)))
 
 ''' Preprocess '''
-# X
 X_segment = text_segmentation(X_train)
 X_train = word_to_vector(X_segment)
-# Y
+
 Y_train = np_utils.to_categorical(Y_train, 2)
 
 ''' Validation set '''
@@ -141,6 +140,9 @@ BATCH_SIZE = 100
 EPOCHS = 16
 # train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1)
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
+
+result = model.evaluate(X_train, Y_train)
+print('\nTrain Acc:', result[1])
 
 ''' Save model '''
 model.save(model_fpath)
