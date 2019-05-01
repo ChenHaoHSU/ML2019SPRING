@@ -48,8 +48,8 @@ def w2v(X_seg):
         for i in range(min(len(X_seg[n]), MAX_LENGTH)):
             try:
                 vector = w2v_model[X_seg[n][i]]
-                X_train[n][i] = vector
-                #X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+                # X_train[n][i] = vector
+                X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
                 # print ('Word', X_seg[n][i], 'is not in dictionary.')

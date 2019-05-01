@@ -76,7 +76,7 @@ def segment(X):
 
 def w2v(X_seg):
     print('# [Info] W2V model.')
-    w2v_model = word2vec.Word2Vec(X_seg, size=EMBEDDING_DIM, window=5, min_count=2, workers=4, iter=20)
+    w2v_model = word2vec.Word2Vec(X_seg, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
     w2v_model.save(w2v_fpath)
     print('Converting texts to vectors...')
     X_train = np.zeros((len(X_seg), MAX_LENGTH, EMBEDDING_DIM))
@@ -84,8 +84,8 @@ def w2v(X_seg):
         for i in range(min(len(X_seg[n]), MAX_LENGTH)):
             try:
                 vector = w2v_model[X_seg[n][i]]
-                X_train[n][i] = vector
-                #X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+                # X_train[n][i] = vector
+                X_train[n][i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
                 # print ('Word', X_seg[n][i], 'is not in dictionary.')
@@ -96,11 +96,11 @@ def new_model():
     DROPOUT = 0.2
     model = Sequential()
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2, input_shape=(MAX_LENGTH, EMBEDDING_DIM), 
-                   return_sequences=True, activation='tanh'))
+                   return_sequences=True, activation='relu'))
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                   return_sequences=True, activation='tanh'))
+                   return_sequences=True, activation='relu'))
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                   return_sequences=False, activation='tanh'))
+                   return_sequences=False, activation='relu'))
     neurons = [512, 256, 128]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
