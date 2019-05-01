@@ -71,7 +71,7 @@ X_test = word_to_vector(X_segment)
 print('# [Info] Loading model...')
 model = load_model(model_fpath)
 prediction = model.predict(X_test)
-print('# [Info] Output...')
+print('# [Info] Output \'{}\'...'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
     for i, v in enumerate(prediction):

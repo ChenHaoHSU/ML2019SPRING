@@ -100,12 +100,12 @@ def new_model():
     DROPOUT = 0.2
     model = Sequential()
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                  return_sequences=True, activation='relu',
+                  return_sequences=True, activation='sigmoid',
                   input_shape=(MAX_LENGTH, EMBEDDING_DIM)))
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                  return_sequences=True, activation='relu'))
+                  return_sequences=True, activation='sigmoid'))
     model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
-                  return_sequences=False, activation='relu'))
+                  return_sequences=False, activation='sigmoid'))
     neurons = [512, 256, 128]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
