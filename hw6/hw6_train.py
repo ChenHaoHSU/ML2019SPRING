@@ -63,14 +63,14 @@ def text_segmentation(X_train):
     print('# [Info] Loading jieba...')
     jieba.load_userdict(dict_fpath)
     P = Pool(processes=4) 
-    X_segment = P.map(self.tokenize, X_train)
+    X_segment = P.map(tokenize, X_train)
     P.close()
     P.join()
     return X_segment
 
 def tokenize(sentence):
     tokens = []
-    for word in list(jieba.cut(sent, cut_all=False)):
+    for word in list(jieba.cut(sentence, cut_all=False)):
         if word[0] == 'B': continue
         tokens.append(word)
     return tokens
@@ -82,17 +82,20 @@ def word_to_vector(X_segment):
     else:
         w2v_model = Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
         w2v_model.save(w2v_fpath)
-    X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
-    for i in range(len(X_segment)):
-        print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(X_segment)), end='', flush=True)
-        for j in range(min(len(X_segment[i]), MAX_LENGTH)):
-            try:
-                vector = w2v_model[X_segment[i][j]]
-                X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
-            except KeyError as e:
-                pass
-    print('', flush=True)
-    return X_train
+    P = Pool(processes=4) 
+    X_train = P.map(to_vector, X_segment)
+    P.close()
+    P.join()
+    return np.array(X_train)
+
+def to_vector(tokens):
+    X_vector = np.zeros((MAX_LENGTH, EMBEDDING_DIM))
+    for i in range(min(len(tokens), MAX_LENGTH)):
+        try:
+            vector = w2v_model[tokens[i]]
+            X_vector[i] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+        except KeyError as e:
+            pass
 
 def new_model():
     print('# [Info] Building model...')
