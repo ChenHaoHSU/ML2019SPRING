@@ -1,26 +1,25 @@
 import sys, os, random
 import numpy as np
 import pandas as pd
+from multiprocessing import Pool
 
-from keras.models import Sequential, Model
-from keras.layers import Conv2D, MaxPooling2D, Flatten
-from keras.layers import Dense, Dropout, Activation
-from keras.layers import ZeroPadding2D, BatchNormalization
-from keras.layers import GRU, LSTM, Input, Embedding
-from keras.layers import Input
-from keras.optimizers import SGD, Adam
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.layers import BatchNormalization
+from keras.layers import GRU, LSTM, SimpleRNN
 from keras.utils import np_utils, to_categorical
-from keras.layers.pooling import MaxPooling2D, AveragePooling2D
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
 
 import jieba
-from gensim.models import word2vec
-import emoji
+from gensim.models import Word2Vec
 
 MAX_LENGTH = 40
 EMBEDDING_DIM = 100
+LOAD_W2V = False
+SHUFFLE_SPLIT = False
+BATCH_SIZE = 100
+EPOCHS = 16
+VAL_RATIO = 0.1
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
@@ -61,34 +60,37 @@ def split_train_val(X, Y, val_ratio, shuffle=False):
     return X[:train_len], Y[:train_len], X[train_len:], Y[train_len:]
 
 def text_segmentation(X_train):
-    print('# [Info] Segmenting text...')
+    print('# [Info] Loading jieba...')
     jieba.load_userdict(dict_fpath)
-    X_segment = []
-    for i, sent in enumerate(X_train):
-        print('\r#   - Segmenting ({} / {})'.format(i+1, len(X_train)), end='', flush=True)
-        tmp_list = []
-        for word in list(jieba.cut(sent, cut_all=False)):
-            if word[0] == 'B': continue
-            tmp_list.append(word)
-        X_segment.append(tmp_list)
-    print('', flush=True)
+    P = Pool(processes=4) 
+    X_segment = P.map(self.tokenize, X_train)
+    P.close()
+    P.join()
     return X_segment
+
+def tokenize(sentence):
+    tokens = []
+    for word in list(jieba.cut(sent, cut_all=False)):
+        if word[0] == 'B': continue
+        tokens.append(word)
+    return tokens
 
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
-    w2v_model = word2vec.Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
-    w2v_model.save(w2v_fpath)
+    if LOAD_W2V == True:
+        w2v_model = Word2Vec.load(w2v_fpath)
+    else:
+        w2v_model = Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
+        w2v_model.save(w2v_fpath)
     X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
     for i in range(len(X_segment)):
-        print('\r#   - Converting texts to vectors ({} / {})'.format(i+1, len(X_segment)), end='', flush=True)
+        print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(X_segment)), end='', flush=True)
         for j in range(min(len(X_segment[i]), MAX_LENGTH)):
             try:
                 vector = w2v_model[X_segment[i][j]]
-                # X_train[i][j] = vector
                 X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
-                # print ('Word', X_segment[n][i], 'is not in dictionary.')
     print('', flush=True)
     return X_train
 
@@ -120,11 +122,9 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 ''' Preprocess '''
 X_segment = text_segmentation(X_train)
 X_train = word_to_vector(X_segment)
-
-Y_train = np_utils.to_categorical(Y_train, 2)
+# Y_train = np_utils.to_categorical(Y_train, 2)
 
 ''' Validation set '''
-VAL_RATIO = 0.1
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
@@ -133,13 +133,8 @@ model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 ''' Train Train Train '''
-BATCH_SIZE = 100
-EPOCHS = 16
 # train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1)
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
-
-result = model.evaluate(X_train, Y_train)
-print('\nTrain Acc:', result[1])
 
 ''' Save model '''
 model.save(model_fpath)
