@@ -78,23 +78,23 @@ def tokenize(sentence):
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
     if LOAD_W2V == True:
-        w2v_model = Word2Vec.load(w2v_fpath)
+        embed = Word2Vec.load(w2v_fpath)
     else:
-        w2v_model = Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
-        w2v_model.save(w2v_fpath)
+        embed = Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
+        embed.save(w2v_fpath)
     X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
     for i in range(len(X_segment)):
         print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(X_segment)), end='', flush=True)
         for j in range(min(len(X_segment[i]), MAX_LENGTH)):
             try:
-                vector = w2v_model[X_segment[i][j]]
+                vector = embed[X_segment[i][j]]
                 X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
     print('', flush=True)
     return X_train
 
-def new_model():
+def build_model():
     print('# [Info] Building model...')
     DROPOUT = 0.2
     model = Sequential()
@@ -110,7 +110,7 @@ def new_model():
         model.add(Dense(neuron, activation='relu'))
         model.add(BatchNormalization())
         model.add(Dropout(DROPOUT))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dense(1, activation='softmax'))
     return model
 
 ''' Load training data '''
@@ -128,7 +128,7 @@ X_train = word_to_vector(X_segment)
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
-model = new_model()
+model = build_model()
 model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
