@@ -26,7 +26,12 @@ MIN_COUNT = 3
 WORKERS = 8
 ITER = 25
 
+VAL_RATIO = 0.1
+BATCH_SIZE = 100
+EPOCHS = 16
 
+DROPOUT = 0.2
+RECURRENT_DROPOUT = 0.2
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
@@ -101,14 +106,13 @@ def word_to_vector(X_segment):
 
 def build_model():
     print('# [Info] Building model...')
-    DROPOUT = 0.2
     model = Sequential()
-    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
+    model.add(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
                   return_sequences=True, activation='sigmoid',
                   input_shape=(MAX_LENGTH, EMBEDDING_DIM)))
-    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
+    model.add(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
                   return_sequences=True, activation='sigmoid'))
-    model.add(GRU(256, dropout=0.2, recurrent_dropout=0.2,
+    model.add(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
                   return_sequences=False, activation='sigmoid'))
     neurons = [512, 256, 128]
     for neuron in neurons:
@@ -127,11 +131,9 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 ''' Preprocess '''
 X_segment = text_segmentation(X_train)
 X_train = word_to_vector(X_segment)
-
 Y_train = np_utils.to_categorical(Y_train, 2)
 
 ''' Validation set '''
-VAL_RATIO = 0.1
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
@@ -140,8 +142,6 @@ model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 ''' Train Train Train '''
-BATCH_SIZE = 100
-EPOCHS = 16
 # train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1)
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
 
