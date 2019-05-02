@@ -26,21 +26,19 @@ def load_X(fpath):
     return np.array(data['comment'].values, dtype=str)
 
 def text_segmentation(X_train):
-    print('# [Info] Loading jieba...')
+    print('# [Info] Loading JIEBA...')
     jieba.load_userdict(dict_fpath)
-    P = Pool(processes=4) 
-    X_segment = P.map(tokenize, X_train)
-    P.close()
-    P.join()
+    X_segment = []
+    for i, sent in enumerate(X_train):
+        print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X_train)), end='', flush=True)
+        word_list = []
+        for word in list(jieba.cut(sent, cut_all=False)):
+            if word[0] == 'B': continue
+            word_list.append(word)
+        X_segment.append(word_list)
+    print('', flush=True)
     return X_segment
-
-def tokenize(sentence):
-    tokens = []
-    for word in list(jieba.cut(sentence, cut_all=False)):
-        if word[0] == 'B': continue
-        tokens.append(word)
-    return tokens
-    
+ 
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
     embed = Word2Vec.load(w2v_fpath)

@@ -2,22 +2,14 @@ import sys, os, random
 import numpy as np
 import pandas as pd
 
-from keras.models import Sequential, Model
-from keras.layers import Conv2D, MaxPooling2D, Flatten
-from keras.layers import Dense, Dropout, Activation
-from keras.layers import ZeroPadding2D, BatchNormalization
-from keras.layers import GRU, LSTM, Input, Embedding
-from keras.layers import Input
-from keras.optimizers import SGD, Adam
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.layers import BatchNormalization
+from keras.layers import GRU, LSTM, Bidirectional
 from keras.utils import np_utils, to_categorical
-from keras.layers.pooling import MaxPooling2D, AveragePooling2D
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ModelCheckpoint
-from keras.models import load_model
 
 import jieba
 from gensim.models import Word2Vec
-import emoji
 
 MAX_LENGTH = 40
 EMBEDDING_DIM = 100
@@ -26,7 +18,7 @@ MIN_COUNT = 3
 WORKERS = 8
 ITER = 25
 
-LOAD_W2V = False
+LOAD_W2V = True
 
 VAL_RATIO = 0.1
 BATCH_SIZE = 100
@@ -109,13 +101,13 @@ def word_to_vector(X_segment):
 def build_model():
     print('# [Info] Building model...')
     model = Sequential()
-    model.add(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=True, activation='sigmoid',
+    model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
+                  return_sequences=True, activation='sigmoid'),
                   input_shape=(MAX_LENGTH, EMBEDDING_DIM)))
-    model.add(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=True, activation='sigmoid'))
-    model.add(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=False, activation='sigmoid'))
+    model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
+                  return_sequences=True, activation='sigmoid')))
+    model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
+                  return_sequences=False, activation='sigmoid')))
     neurons = [512, 256, 128]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
