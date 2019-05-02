@@ -20,9 +20,9 @@ ITER = 25
 
 LOAD_W2V = True
 
-VAL_RATIO = 0.1
+VAL_RATIO = 0.001
 BATCH_SIZE = 100
-EPOCHS = 16
+EPOCHS = 12
 
 DROPOUT = 0.2
 RECURRENT_DROPOUT = 0.2
@@ -137,6 +137,8 @@ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy']
 
 ''' Train Train Train '''
 # train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1)
+#import tensorflow as tf
+#with tf.device('/gpu:1'):
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
 
 result = model.evaluate(X_train, Y_train)
