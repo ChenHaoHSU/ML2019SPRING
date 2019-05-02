@@ -26,18 +26,20 @@ def load_X(fpath):
     return np.array(data['comment'].values, dtype=str)
 
 def text_segmentation(X_train):
-    print('# [Info] Segmenting text...')
+    print('# [Info] Loading jieba...')
     jieba.load_userdict(dict_fpath)
-    X_segment = []
-    for i, sent in enumerate(X_train):
-        print('\r#   - Segmenting ({} / {})'.format(i+1, len(X_train)), end='', flush=True)
-        tmp_list = []
-        for word in list(jieba.cut(sent, cut_all=False)):
-            if word[0] == 'B': continue
-            tmp_list.append(word)
-        X_segment.append(tmp_list)
-    print('', flush=True)
+    P = Pool(processes=4) 
+    X_segment = P.map(tokenize, X_train)
+    P.close()
+    P.join()
     return X_segment
+
+def tokenize(sentence):
+    tokens = []
+    for word in list(jieba.cut(sentence, cut_all=False)):
+        if word[0] == 'B': continue
+        tokens.append(word)
+    return tokens
     
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
@@ -68,9 +70,12 @@ X_test = word_to_vector(X_segment)
 print('# [Info] Loading model...')
 model = load_model(model_fpath)
 prediction = model.predict(X_test)
+prediction[outputs>=0.5] = 1
+prediction[outputs<0.5] = 0
 print('# [Info] Output \'{}\'...'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
     for i, v in enumerate(prediction):
-        f.write('%d,%d\n' %(i, np.argmax(v)))
+        # f.write('%d,%d\n' %(i, np.argmax(v)))
+        f.write('%d,%d\n' %(i, v)))
 print('Done!')
