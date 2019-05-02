@@ -16,11 +16,17 @@ from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
 
 import jieba
-from gensim.models import word2vec
+from gensim.models import Word2Vec
 import emoji
 
 MAX_LENGTH = 40
 EMBEDDING_DIM = 100
+WINDOW = 6
+MIN_COUNT = 3
+WORKERS = 8
+ITER = 25
+
+
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
@@ -61,38 +67,39 @@ def split_train_val(X, Y, val_ratio, shuffle=False):
     return X[:train_len], Y[:train_len], X[train_len:], Y[train_len:]
 
 def text_segmentation(X_train):
-    print('# [Info] Segmenting text...')
+    print('# [Info] Loading JIEBA...')
     jieba.load_userdict(dict_fpath)
     X_segment = []
     for i, sent in enumerate(X_train):
-        print('\r#   - Segmenting ({} / {})'.format(i+1, len(X_train)), end='', flush=True)
-        tmp_list = []
+        print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X_train)), end='', flush=True)
+        word_list = []
         for word in list(jieba.cut(sent, cut_all=False)):
             if word[0] == 'B': continue
-            tmp_list.append(word)
-        X_segment.append(tmp_list)
+            word_list.append(word)
+        X_segment.append(word_list)
     print('', flush=True)
     return X_segment
 
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
-    w2v_model = word2vec.Word2Vec(X_segment, size=EMBEDDING_DIM, window=6, min_count=3, workers=8, iter=25)
-    w2v_model.save(w2v_fpath)
+    if LOAD_W2V == True:
+        embed = Word2Vec.load(w2v_fpath)
+    else:
+        embed = Word2Vec(X_segment, size=EMBEDDING_DIM, window=WINDOW, min_count=MIN_COUNT, workers=WORKERS, iter=ITER)
+        embed.save(w2v_fpath)
     X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
     for i in range(len(X_segment)):
-        print('\r#   - Converting texts to vectors ({} / {})'.format(i+1, len(X_segment)), end='', flush=True)
+        print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(X_segment)), end='', flush=True)
         for j in range(min(len(X_segment[i]), MAX_LENGTH)):
             try:
-                vector = w2v_model[X_segment[i][j]]
-                # X_train[i][j] = vector
+                vector = embed[X_segment[i][j]]
                 X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
-                # print ('Word', X_segment[n][i], 'is not in dictionary.')
     print('', flush=True)
     return X_train
 
-def new_model():
+def build_model():
     print('# [Info] Building model...')
     DROPOUT = 0.2
     model = Sequential()
@@ -128,7 +135,7 @@ VAL_RATIO = 0.1
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
-model = new_model()
+model = build_model()
 model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 

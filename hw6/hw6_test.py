@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from keras.models import load_model
 import jieba
-from gensim.models import word2vec
+from gensim.models import Word2Vec
 
 # bash hw6_test.sh <test_x file> <dict.txt.big file> <output file>
 X_test_fpath = sys.argv[1]
@@ -43,18 +43,16 @@ def tokenize(sentence):
     
 def word_to_vector(X_segment):
     print('# [Info] Building W2V model...')
-    w2v_model = word2vec.Word2Vec.load(w2v_fpath)
+    embed = Word2Vec.load(w2v_fpath)
     X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
     for i in range(len(X_segment)):
         print('\r#   - Converting texts to vectors ({} / {})'.format(i+1, len(X_segment)), end='', flush=True)
         for j in range(min(len(X_segment[i]), MAX_LENGTH)):
             try:
-                vector = w2v_model[X_segment[i][j]]
-                # X_train[i][j] = vector
+                vector = embed[X_segment[i][j]]
                 X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
-                # print ('Word', X_segment[n][i], 'is not in dictionary.')
     print('', flush=True)
     return X_train
 
@@ -70,12 +68,9 @@ X_test = word_to_vector(X_segment)
 print('# [Info] Loading model...')
 model = load_model(model_fpath)
 prediction = model.predict(X_test)
-prediction[outputs>=0.5] = 1
-prediction[outputs<0.5] = 0
 print('# [Info] Output \'{}\'...'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
     for i, v in enumerate(prediction):
-        # f.write('%d,%d\n' %(i, np.argmax(v)))
-        f.write('%d,%d\n' %(i, v)))
+        f.write('%d,%d\n' %(i, np.argmax(v)))
 print('Done!')
