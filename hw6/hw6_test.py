@@ -57,7 +57,7 @@ print('# [Info] {} testing data loaded.'.format(len(X_test)))
 ''' Preprocess '''
 X_test_segment = text_segmentation(X_test)
 embed = Word2Vec.load(w2v_fpath)
-X_test = word_to_vector(X_test_segment)
+X_test = word_to_vector(embed, X_test_segment)
 
 ''' Prediction and Output '''
 print('# [Info] Load model: {}'.format(model_fpath))
