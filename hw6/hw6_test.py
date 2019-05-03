@@ -55,6 +55,8 @@ X_test = load_X(X_test_fpath)
 print('# [Info] {} testing data loaded.'.format(len(X_test)))
 
 ''' Preprocess '''
+print('# [Info] Loading JIEBA...')
+jieba.load_userdict(dict_fpath)
 X_test_segment = text_segmentation(X_test)
 embed = Word2Vec.load(w2v_fpath)
 X_test = word_to_vector(embed, X_test_segment)
