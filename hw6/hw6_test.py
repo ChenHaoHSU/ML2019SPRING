@@ -25,48 +25,45 @@ def load_X(fpath):
     data = pd.read_csv(fpath)
     return np.array(data['comment'].values, dtype=str)
 
-def text_segmentation(X_train):
-    print('# [Info] Loading JIEBA...')
-    jieba.load_userdict(dict_fpath)
-    X_segment = []
-    for i, sent in enumerate(X_train):
-        print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X_train)), end='', flush=True)
+def text_segmentation(X):
+    segment = []
+    for i, sentence in enumerate(X):
+        print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X)), end='', flush=True)
         word_list = []
-        for word in list(jieba.cut(sent, cut_all=False)):
+        for word in list(jieba.cut(sentence, cut_all=False)):
             if word[0] == 'B': continue
             word_list.append(word)
-        X_segment.append(word_list)
+        segment.append(word_list)
     print('', flush=True)
-    return X_segment
- 
-def word_to_vector(X_segment):
-    print('# [Info] Building W2V model...')
-    embed = Word2Vec.load(w2v_fpath)
-    X_train = np.zeros((len(X_segment), MAX_LENGTH, EMBEDDING_DIM))
-    for i in range(len(X_segment)):
-        print('\r#   - Converting texts to vectors ({} / {})'.format(i+1, len(X_segment)), end='', flush=True)
-        for j in range(min(len(X_segment[i]), MAX_LENGTH)):
+    return segment
+
+def word_to_vector(embed, segment):
+    vectors = np.zeros((len(segment), MAX_LENGTH, EMBEDDING_DIM))
+    for i in range(len(segment)):
+        print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(segment)), end='', flush=True)
+        for j in range(min(len(segment[i]), MAX_LENGTH)):
             try:
-                vector = embed[X_segment[i][j]]
-                X_train[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+                vector = embed[segment[i][j]]
+                vectors[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
             except KeyError as e:
                 pass
     print('', flush=True)
-    return X_train
+    return vectors
 
 ''' Load testing data '''
 X_test = load_X(X_test_fpath)
 print('# [Info] {} testing data loaded.'.format(len(X_test)))
 
 ''' Preprocess '''
-X_segment = text_segmentation(X_test)
-X_test = word_to_vector(X_segment)
+X_test_segment = text_segmentation(X_test)
+embed = Word2Vec.load(w2v_fpath)
+X_test = word_to_vector(X_test_segment)
 
 ''' Prediction and Output '''
-print('# [Info] Loading model...')
+print('# [Info] Load model: {}'.format(model_fpath))
 model = load_model(model_fpath)
 prediction = model.predict(X_test)
-print('# [Info] Output \'{}\'...'.format(output_fpath))
+print('# [Info] Output prediction: {}'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
     for i, v in enumerate(prediction):
