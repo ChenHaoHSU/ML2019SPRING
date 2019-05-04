@@ -13,12 +13,12 @@ from gensim.models import Word2Vec
 
 MAX_LENGTH = 40
 EMBEDDING_DIM = 100
-WINDOW = 6
+WINDOW = 5
 MIN_COUNT = 3
 WORKERS = 8
-ITER = 25
+ITER = 30
 
-LOAD_W2V = True
+LOAD_W2V = False
 
 VAL_RATIO = 0.001
 BATCH_SIZE = 100
@@ -112,7 +112,7 @@ def build_model():
                   return_sequences=True, activation='sigmoid')))
     model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
                   return_sequences=False, activation='sigmoid')))
-    neurons = [512, 256, 128]
+    neurons = [256]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
         model.add(BatchNormalization())
