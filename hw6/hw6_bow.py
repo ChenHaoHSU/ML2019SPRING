@@ -13,6 +13,7 @@ import jieba
 from gensim.models import Word2Vec
 
 TEST = False
+NUM = 75000
 
 VAL_RATIO = 0.1
 BATCH_SIZE = 100
@@ -60,11 +61,15 @@ def split_train_val(X, Y, val_ratio, shuffle=False):
 
 def text_segmentation(X):
     segment = []
+    filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
     for i, sentence in enumerate(X):
         print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X)), end='', flush=True)
         word_list = []
+        for c in filters:
+            sentence = sentence.replace(c, '')
         for word in list(jieba.cut(sentence, cut_all=False)):
             if word[0] == 'B': continue
+            if word[0] == 'b': continue
             word_list.append(word)
         segment.append(word_list)
     print('', flush=True)
@@ -74,17 +79,21 @@ def build_dict(X):
     word_dict = dict()
     cnt = 0
     for i, sentence in enumerate(X):
+        # if i > int(len(X) * (1.0 - VAL_RATIO)): continue
         print('\r# [Info] Building word dictionary... {} / {}'.format(i+1, len(X)), end='', flush=True)
         for j, word in enumerate(sentence):
             if word[0] == 'B': continue
+            if word[0] == 'b': continue
             if word in [' ', '  ', '']: continue
             if word not in word_dict:
                 word_dict[word] = cnt
                 cnt += 1
     print('', flush=True)
+    print(word_dict)
     return word_dict
 
 def sentence_to_bag(word_dict, segment):
+    print(len(segment), len(word_dict))
     vectors = np.zeros((len(segment), len(word_dict)), dtype=int)
     for i, sentence in enumerate(segment):
         for j, word in enumerate(sentence):
@@ -104,11 +113,11 @@ print('# [Info] {} training data loaded.'.format(len(X_train)))
 if TEST == True:
     print('# [Info] Loading JIEBA...')
     jieba.load_userdict(dict_fpath)
-    X_train = X_train[0:119018]
+    X_train = X_train[0:NUM]
     X_train_segment = text_segmentation(X_train)
     X_test_segment = text_segmentation(X_test)
     word_dict = build_dict(X_train_segment)
-    X_test = sentence_to_bag(word_dict, X_train_segment):
+    X_test = sentence_to_bag(word_dict, X_train_segment)
     model = load_model(model_fpath)
     prediction = model.predict(X_test)
     with open('output.csv', 'w') as f:
@@ -119,12 +128,12 @@ if TEST == True:
 else:
     print('# [Info] Loading JIEBA...')
     jieba.load_userdict(dict_fpath)
-    X_train = X_train[0:119018]
-    Y_train = Y_train[0:119018]
+    X_train = X_train[0:NUM]
+    Y_train = Y_train[0:NUM]
     X_train_segment = text_segmentation(X_train)
     X_test_segment = text_segmentation(X_test)
     word_dict = build_dict(X_train_segment)
-    X_train = sentence_to_bag(word_dict, X_train_segment):
+    X_train = sentence_to_bag(word_dict, X_train_segment)
     Y_train = np_utils.to_categorical(Y_train, 2)
 
 ''' Split validation set '''
