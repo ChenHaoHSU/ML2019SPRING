@@ -5,27 +5,20 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.layers import BatchNormalization
-from keras.layers import GRU, LSTM, Bidirectional
 from keras.utils import np_utils, to_categorical
+
+from keras.models import load_model
 
 import jieba
 from gensim.models import Word2Vec
 
-MAX_LENGTH = 40
-EMBEDDING_DIM = 100
-WINDOW = 5
-MIN_COUNT = 3
-WORKERS = 8
-ITER = 30
+TEST = False
 
-LOAD_W2V = False
-
-VAL_RATIO = 0.001
+VAL_RATIO = 0.1
 BATCH_SIZE = 100
 EPOCHS = 12
 
 DROPOUT = 0.2
-RECURRENT_DROPOUT = 0.2
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
@@ -56,13 +49,13 @@ def load_Y(fpath):
     return np.array(data['label'].values, dtype=int)
 
 def split_train_val(X, Y, val_ratio, shuffle=False):
-    assert X.shape[0] == Y.shape[0]
+    assert len(X) == len(Y)
     if shuffle == True:
         indices = np.arange(len(X))
         np.random.shuffle(indices)
         X = X[indices]
         Y = Y[indices]
-    train_len = int(X.shape[0] * (1.0 - val_ratio))
+    train_len = int(len(X) * (1.0 - val_ratio))
     return X[:train_len], Y[:train_len], X[train_len:], Y[train_len:]
 
 def text_segmentation(X):
@@ -77,48 +70,28 @@ def text_segmentation(X):
     print('', flush=True)
     return segment
 
-def build_embed(X):
-    if LOAD_W2V == True:
-        print('# [Info] Loading w2v model...')
-        embed = Word2Vec.load(w2v_fpath)
-    else:
-        print('# [Info] Building w2v model...')
-        print('#    - Total data: {}'.format(len(X)))
-        embed = Word2Vec(X, size=EMBEDDING_DIM, window=WINDOW, min_count=MIN_COUNT, workers=WORKERS, iter=ITER)
-        print('#    - Model saved: {}'.format(w2v_fpath))
-        embed.save(w2v_fpath)
-    return embed
-
-def word_to_vector(embed, segment):
-    vectors = np.zeros((len(segment), MAX_LENGTH, EMBEDDING_DIM))
-    for i in range(len(segment)):
-        print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(segment)), end='', flush=True)
-        for j in range(min(len(segment[i]), MAX_LENGTH)):
-            try:
-                vector = embed[segment[i][j]]
-                vectors[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
-            except KeyError as e:
-                pass
+def build_dict(X):
+    word_dict = dict()
+    cnt = 0
+    for i, sentence in enumerate(X):
+        print('\r# [Info] Building word dictionary... {} / {}'.format(i+1, len(X)), end='', flush=True)
+        for j, word in enumerate(sentence):
+            if word[0] == 'B': continue
+            if word in [' ', '  ', '']: continue
+            if word not in word_dict:
+                word_dict[word] = cnt
+                cnt += 1
     print('', flush=True)
-    return vectors
+    return word_dict
 
-def build_model():
-    print('# [Info] Building model...')
-    model = Sequential()
-    model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=True, activation='sigmoid'),
-                  input_shape=(MAX_LENGTH, EMBEDDING_DIM)))
-    model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=True, activation='sigmoid')))
-    model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=False, activation='sigmoid')))
-    neurons = [256]
-    for neuron in neurons:
-        model.add(Dense(neuron, activation='relu'))
-        model.add(BatchNormalization())
-        model.add(Dropout(DROPOUT))
-    model.add(Dense(2, activation='softmax'))
-    return model
+def sentence_to_bag(word_dict, segment):
+    vectors = np.zeros((len(segment), len(word_dict)), dtype=int)
+    for i, sentence in enumerate(segment):
+        for j, word in enumerate(sentence):
+            if word in word_dict:
+                vectors[i, word_dict[word]] += 1
+    print(vectors.shape)
+    return vectors
 
 ''' Load training data '''
 X_train = load_X(X_train_fpath)
@@ -128,19 +101,50 @@ assert X_train.shape[0] == Y_train.shape[0]
 print('# [Info] {} training data loaded.'.format(len(X_train)))
 
 ''' Preprocess '''
-print('# [Info] Loading JIEBA...')
-jieba.load_userdict(dict_fpath)
-X_train = X_train[0:119018]
-Y_train = Y_train[0:119018]
-X_train_segment = text_segmentation(X_train)
-X_test_segment = text_segmentation(X_test)
-embed = build_embed(X_train_segment + X_test_segment)
-X_train = word_to_vector(embed, X_train_segment)
-Y_train = np_utils.to_categorical(Y_train, 2)
+if TEST == True:
+    print('# [Info] Loading JIEBA...')
+    jieba.load_userdict(dict_fpath)
+    X_train = X_train[0:119018]
+    X_train_segment = text_segmentation(X_train)
+    X_test_segment = text_segmentation(X_test)
+    word_dict = build_dict(X_train_segment)
+    X_test = sentence_to_bag(word_dict, X_train_segment):
+    model = load_model(model_fpath)
+    prediction = model.predict(X_test)
+    with open('output.csv', 'w') as f:
+        f.write('id,label\n')
+        for i, v in enumerate(prediction):
+            f.write('%d,%d\n' %(i, np.argmax(v)))
+    sys.exit()
+else:
+    print('# [Info] Loading JIEBA...')
+    jieba.load_userdict(dict_fpath)
+    X_train = X_train[0:119018]
+    Y_train = Y_train[0:119018]
+    X_train_segment = text_segmentation(X_train)
+    X_test_segment = text_segmentation(X_test)
+    word_dict = build_dict(X_train_segment)
+    X_train = sentence_to_bag(word_dict, X_train_segment):
+    Y_train = np_utils.to_categorical(Y_train, 2)
 
-''' Validation set '''
+''' Split validation set '''
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
+
+''' Build model '''
+def build_model():
+    print('# [Info] Building model...')
+    model = Sequential()
+    model.add(Dense(units=512, input_dim=len(word_dict), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(dropout))
+    neurons = [256, 128]
+    for neuron in neurons:
+        model.add(Dense(neuron, activation='relu'))
+        model.add(BatchNormalization())
+        model.add(Dropout(dropout))
+    model.add(Dense(2, activation='softmax'))
+    return model
 
 ''' Build model '''
 model = build_model()
