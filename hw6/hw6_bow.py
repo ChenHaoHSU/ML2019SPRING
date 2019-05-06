@@ -13,7 +13,7 @@ import jieba
 from gensim.models import Word2Vec
 
 TEST = False
-NUM = 75000
+NUM = 70000
 
 VAL_RATIO = 0.1
 BATCH_SIZE = 100
@@ -67,7 +67,7 @@ def text_segmentation(X):
         word_list = []
         for c in filters:
             sentence = sentence.replace(c, '')
-        for word in list(jieba.cut(sentence, cut_all=False)):
+        for word in jieba.cut(sentence, cut_all=False):
             if word[0] == 'B': continue
             if word[0] == 'b': continue
             word_list.append(word)
@@ -79,9 +79,10 @@ def build_dict(X):
     word_dict = dict()
     cnt = 0
     for i, sentence in enumerate(X):
-        # if i > int(len(X) * (1.0 - VAL_RATIO)): continue
+        if i > int(len(X) * (1.0 - VAL_RATIO)): continue
         print('\r# [Info] Building word dictionary... {} / {}'.format(i+1, len(X)), end='', flush=True)
         for j, word in enumerate(sentence):
+            if len(word) > 4 or len(word) < 2: continue
             if word[0] == 'B': continue
             if word[0] == 'b': continue
             if word in [' ', '  ', '']: continue
@@ -131,7 +132,7 @@ else:
     X_train = X_train[0:NUM]
     Y_train = Y_train[0:NUM]
     X_train_segment = text_segmentation(X_train)
-    X_test_segment = text_segmentation(X_test)
+    #X_test_segment = text_segmentation(X_test)
     word_dict = build_dict(X_train_segment)
     X_train = sentence_to_bag(word_dict, X_train_segment)
     Y_train = np_utils.to_categorical(Y_train, 2)
@@ -140,20 +141,25 @@ else:
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
+word_num = len(word_dict)
+
 ''' Build model '''
 def build_model():
     print('# [Info] Building model...')
     model = Sequential()
-    model.add(Dense(units=512, input_dim=len(word_dict), activation='relu'))
+    model.add(Dense(units=512, input_dim=word_num, activation='relu'))
     model.add(BatchNormalization())
-    model.add(Dropout(dropout))
+    model.add(Dropout(DROPOUT))
     neurons = [256, 128]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
         model.add(BatchNormalization())
-        model.add(Dropout(dropout))
+        model.add(Dropout(DROPOUT))
     model.add(Dense(2, activation='softmax'))
     return model
+
+word_dict = dict()
+X_train_segment = list()
 
 ''' Build model '''
 model = build_model()
