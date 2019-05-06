@@ -83,7 +83,7 @@ for i, sentence in enumerate(X_train_list):
         if word not in word_dict:
             word_dict[word] = cnt
             cnt += 1
-
+'''
 print(len(X_train_list), len(word_dict))
 X_train = np.zeros((len(X_train_list), len(word_dict)), dtype=int)
 for i, sentence in enumerate(X_train_list):
@@ -92,22 +92,26 @@ for i, sentence in enumerate(X_train_list):
         if word in word_dict:
             X_train[i, word_dict[word]] += 1
 print(X_train.shape)
+'''
 
-# X_test = load_X('../data/hw6/test_x.csv')
-# X_test_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_test ]
-# model = load_model(model_fpath)
-# X_test = np.zeros((len(X_test_list), len(word_dict)), dtype=int)
-# for i, sentence in enumerate(X_test_list):
-#     vec = np.zeros(len(word_dict))
-#     for j, word in enumerate(sentence):
-#         if word in word_dict:
-#             X_test[i, word_dict[word]] += 1
-# prediction = model.predict(X_test)
-# with open('output.csv', 'w') as f:
-#     f.write('id,label\n')
-#     for i, v in enumerate(prediction):
-#         f.write('%d,%d\n' %(i, np.argmax(v)))
-# sys.exit()
+X_train = []
+Y_train = []
+
+X_test = load_X('../data/hw6/test_x.csv')
+X_test_list = [ list(jieba.cut(sent, cut_all=False)) for sent in X_test ]
+X_test = np.zeros((len(X_test_list), len(word_dict)), dtype=int)
+for i, sentence in enumerate(X_test_list):
+    vec = np.zeros(len(word_dict))
+    for j, word in enumerate(sentence):
+        if word in word_dict:
+            X_test[i, word_dict[word]] += 1
+model = load_model(model_fpath)
+prediction = model.predict(X_test)
+with open('bow_pred.csv', 'w') as f:
+    f.write('id,label\n')
+    for i, v in enumerate(prediction):
+        f.write('%d,%d\n' %(i, np.argmax(v)))
+sys.exit()
 
 ''' Split validation set '''
 print('# [Info] Splitting training data into train and val set...')
