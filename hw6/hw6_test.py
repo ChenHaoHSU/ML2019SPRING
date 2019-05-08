@@ -1,4 +1,5 @@
 import sys, os, random
+import gc
 import numpy as np
 import pandas as pd
 from keras.models import load_model
@@ -12,13 +13,14 @@ X_test_fpath = sys.argv[1]
 dict_fpath = sys.argv[2]
 output_fpath = sys.argv[3]
 w2v_fpath = sys.argv[4]
-model_fpath = sys.argv[5]
+model_fpaths = ['model_0.h5', 'model_1.h5', 'model_2.h5', 'model_3.h5', 'model_4.h5', 'model_5.h5',\
+                'model_6.h5', 'model_7.h5', 'model_8.h5', 'model_9.h5', 'model_10.h5']
 print('# [Info] Argv')
 print('    - X test file  : {}'.format(X_test_fpath))
 print('    - Dict file    : {}'.format(dict_fpath))
 print('    = Output file  : {}'.format(output_fpath))
 print('    - W2V file     : {}'.format(w2v_fpath))
-print('    - Model file   : {}'.format(model_fpath))
+print('    - Model file   : {}'.format(model_fpaths))
 
 ''' Fix random seeds '''
 random.seed(0)
@@ -27,23 +29,19 @@ np.random.seed(0)
 MAX_LENGTH = 40
 EMBEDDING_DIM = 200
 
+BATCH_SIZE = 500
+
 def load_X(fpath):
     data = pd.read_csv(fpath)
     return np.array(data['comment'].values, dtype=str)
 
 def text_segmentation(X):
     segment = []
-    #filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。“”…：、'
     for i, sentence in enumerate(X):
         print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X)), end='', flush=True)
         word_list = []
-        #for c in filters:
-        #    sentence = sentence.replace(c, '')
         for word in list(jieba.cut(sentence, cut_all=False)):
-            #if word[0] == 'b': continue
             if word[0] == 'B': continue
-            #if len(word) > 10: continue
-            #if word[0] in emoji.UNICODE_EMOJI: continue
             word_list.append(word)
         segment.append(word_list)
     print('', flush=True)
@@ -51,18 +49,14 @@ def text_segmentation(X):
 
 def word_to_vector(embed, segment):
     vectors = np.zeros((len(segment), MAX_LENGTH, EMBEDDING_DIM))
-    unk_vec = np.random.normal(size=(EMBEDDING_DIM,)).astype(np.float32)
-    #print(unk_vec)
     for i in range(len(segment)):
         print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(segment)), end='', flush=True)
         for j in range(min(len(segment[i]), MAX_LENGTH)):
             try:
                 vector = embed[segment[i][j]]
                 vectors[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
-                #vectors[i][j] = vector
             except KeyError as e:
                 pass
-                #vectors[i][j] = unk_vec
     print('', flush=True)
     return vectors
 
@@ -78,13 +72,11 @@ embed = Word2Vec.load(w2v_fpath)
 X_test = word_to_vector(embed, X_test_segment)
 
 ''' Prediction and Output '''
-import gc
-model_fpaths = ['model_0.h5', 'model_1.h5', 'model_2.h5', 'model_3.h5', 'model_4.h5', 'model_5.h5', 'model_6.h5'] 
 total_votes = np.zeros((len(X_test), 2))
 for model_fpath in model_fpaths:
     print('# [Info] Load model: {}'.format(model_fpath))
     model = load_model(model_fpath)
-    pred = model.predict(X_test)
+    pred = model.predict(X_test, batch_size=BATCH_SIZE)
     for i, v in enumerate(pred):
         total_votes[i][np.argmax(v)] += 1
     del model
@@ -93,7 +85,6 @@ for model_fpath in model_fpaths:
     K.clear_session()
     print(total_votes)
 prediction = total_votes
-#print(total_votes)
 print('# [Info] Output prediction: {}'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
