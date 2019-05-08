@@ -10,7 +10,6 @@ from keras.utils import np_utils, to_categorical
 
 import jieba
 from gensim.models import Word2Vec
-import emoji
 
 MAX_LENGTH = 40
 EMBEDDING_DIM = 200
