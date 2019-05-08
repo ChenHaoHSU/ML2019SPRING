@@ -70,17 +70,11 @@ def split_train_val(X, Y, val_ratio, shuffle=True):
 
 def text_segmentation(X):
     segment = []
-    #filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。“”…：、'
     for i, sentence in enumerate(X):
         print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X)), end='', flush=True)
         word_list = []
-        #for c in filters:
-        #    sentence = sentence.replace(c, '')
         for word in list(jieba.cut(sentence, cut_all=False)):
-            #if word[0] == 'b': continue
             if word[0] == 'B': continue
-            #if len(word) > 10: continue
-            #if word[0] in emoji.UNICODE_EMOJI: continue
             word_list.append(word)
         segment.append(word_list)
     print('', flush=True)
@@ -101,18 +95,14 @@ def build_embed(X):
 
 def word_to_vector(embed, segment):
     vectors = np.zeros((len(segment), MAX_LENGTH, EMBEDDING_DIM))
-    unk_vec = np.random.normal(size=(EMBEDDING_DIM,)).astype(np.float32)
-    print(unk_vec)
     for i in range(len(segment)):
         print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(segment)), end='', flush=True)
         for j in range(min(len(segment[i]), MAX_LENGTH)):
             try:
                 vector = embed[segment[i][j]]
                 vectors[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
-                #vectors[i][j] = vector
             except KeyError as e:
                 pass
-                #vectors[i][j] = unk_vec
     print('', flush=True)
     return vectors
 
