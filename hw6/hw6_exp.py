@@ -5,14 +5,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# acc_fpath = 'RNN_cc.csv'
-# val_acc_fpath = 'RNN_val_acc.csv'
-# loss_fpath = 'RNN_loss.csv'
-# val_loss_fpath = 'RNN_val_loss.csv'
-acc_fpath = 'BOW_acc.csv'
-val_acc_fpath = 'BOW_val_acc.csv'
-loss_fpath = 'BOW_loss.csv'
-val_loss_fpath = 'BOW_val_loss.csv'
+TYPE = 'BOW'
+
+acc_fpath = '{}_acc.csv'.format(TYPE)
+val_acc_fpath = '{}_val_acc.csv'.format(TYPE)
+loss_fpath = '{}_loss.csv'.format(TYPE)
+val_loss_fpath = '{}_val_loss.csv'.format(TYPE)
 
 acc = np.genfromtxt(acc_fpath)
 val_acc = np.genfromtxt(val_acc_fpath)
@@ -21,23 +19,19 @@ val_loss = np.genfromtxt(val_loss_fpath)
 
 plt.plot(acc)
 plt.plot(val_acc)
-# plt.title('Training Process_RNN')
-plt.title('Training Process (BOW)')
+plt.title('Accuracy ({})'.format(TYPE))
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend(['acc', 'val_acc'], loc='upper left')
-# plt.savefig('Training_process_acc_RNN.png')
-plt.savefig('Training_process_acc_BOW.png')
+plt.savefig('{}_acc.png'.format(TYPE))
 plt.show()
 
 plt.plot(loss)
 plt.plot(val_loss)
-# plt.title('Training Process_RNN')
-plt.title('Training Process (BOW)')
+plt.title('Loss ({})'.format(TYPE))
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
-plt.legend(['acc', 'val_acc'], loc='upper left')
-# plt.savefig('Training_process_loss_RNN.png')
-plt.savefig('Training_process_loss_BOW.png')
+plt.legend(['loss', 'val_loss'], loc='upper left')
+plt.savefig('{}_loss.png'.format(TYPE))
 plt.show()
 
