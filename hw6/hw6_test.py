@@ -18,9 +18,9 @@ model_fpaths = ['model_0.h5', 'model_1.h5', 'model_2.h5', 'model_3.h5', 'model_4
 print('# [Info] Argv')
 print('    - X test file  : {}'.format(X_test_fpath))
 print('    - Dict file    : {}'.format(dict_fpath))
+print('    = Output file  : {}'.format(output_fpath))
 print('    - W2V file     : {}'.format(w2v_fpath))
 print('    - Model file   : {}'.format(model_fpaths))
-print('    = Output file  : {}'.format(output_fpath))
 
 ''' Fix random seeds '''
 random.seed(0)
