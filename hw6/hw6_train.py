@@ -5,27 +5,28 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.layers import BatchNormalization
-from keras.layers import GRU, LSTM, Bidirectional
+from keras.layers import GRU, LSTM, Bidirectional, Embedding
 from keras.utils import np_utils, to_categorical
 
 import jieba
 from gensim.models import Word2Vec
+import emoji
 
 MAX_LENGTH = 40
-EMBEDDING_DIM = 100
+EMBEDDING_DIM = 200
 WINDOW = 5
 MIN_COUNT = 3
 WORKERS = 8
 ITER = 30
 
-LOAD_W2V = False
+LOAD_W2V = True
 
-VAL_RATIO = 0.001
+VAL_RATIO = 0.1
 BATCH_SIZE = 100
 EPOCHS = 12
 
-DROPOUT = 0.2
-RECURRENT_DROPOUT = 0.2
+DROPOUT = 0.3
+RECURRENT_DROPOUT = 0.3
 
 ''' Handle argv '''
 # bash hw6_train.sh <train_x file> <train_y file> <test_x.csv file> <dict.txt.big file>
@@ -35,6 +36,7 @@ X_test_fpath = sys.argv[3]
 dict_fpath = sys.argv[4]
 w2v_fpath = sys.argv[5]
 model_fpath = sys.argv[6]
+randseed = int(sys.argv[7])
 print('# [Info] Argv')
 print('    - X train file : {}'.format(X_train_fpath))
 print('    - Y train file : {}'.format(Y_train_fpath))
@@ -42,10 +44,11 @@ print('    - X test file  : {}'.format(X_test_fpath))
 print('    - Dict file    : {}'.format(dict_fpath))
 print('    - W2V file     : {}'.format(w2v_fpath))
 print('    = Model file   : {}'.format(model_fpath))
+print('    - seed         : {}'.format(randseed))
 
 ''' Fix random seeds '''
-random.seed(0)
-np.random.seed(0)
+random.seed(randseed)
+np.random.seed(randseed)
 
 def load_X(fpath):
     data = pd.read_csv(fpath)
@@ -55,7 +58,7 @@ def load_Y(fpath):
     data = pd.read_csv(fpath)
     return np.array(data['label'].values, dtype=int)
 
-def split_train_val(X, Y, val_ratio, shuffle=False):
+def split_train_val(X, Y, val_ratio, shuffle=True):
     assert X.shape[0] == Y.shape[0]
     if shuffle == True:
         indices = np.arange(len(X))
@@ -67,11 +70,17 @@ def split_train_val(X, Y, val_ratio, shuffle=False):
 
 def text_segmentation(X):
     segment = []
+    #filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。“”…：、'
     for i, sentence in enumerate(X):
         print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X)), end='', flush=True)
         word_list = []
+        #for c in filters:
+        #    sentence = sentence.replace(c, '')
         for word in list(jieba.cut(sentence, cut_all=False)):
+            #if word[0] == 'b': continue
             if word[0] == 'B': continue
+            #if len(word) > 10: continue
+            #if word[0] in emoji.UNICODE_EMOJI: continue
             word_list.append(word)
         segment.append(word_list)
     print('', flush=True)
@@ -85,20 +94,25 @@ def build_embed(X):
         print('# [Info] Building w2v model...')
         print('#    - Total data: {}'.format(len(X)))
         embed = Word2Vec(X, size=EMBEDDING_DIM, window=WINDOW, min_count=MIN_COUNT, workers=WORKERS, iter=ITER)
+        print('#    - Vocab size: {}'.format(len(embed.wv.vocab)))
         print('#    - Model saved: {}'.format(w2v_fpath))
         embed.save(w2v_fpath)
     return embed
 
 def word_to_vector(embed, segment):
     vectors = np.zeros((len(segment), MAX_LENGTH, EMBEDDING_DIM))
+    unk_vec = np.random.normal(size=(EMBEDDING_DIM,)).astype(np.float32)
+    print(unk_vec)
     for i in range(len(segment)):
         print('\r# [Info] Converting texts to vectors... {} / {}'.format(i+1, len(segment)), end='', flush=True)
         for j in range(min(len(segment[i]), MAX_LENGTH)):
             try:
                 vector = embed[segment[i][j]]
                 vectors[i][j] = (vector - vector.mean(0)) / (vector.std(0) + 1e-20)
+                #vectors[i][j] = vector
             except KeyError as e:
                 pass
+                #vectors[i][j] = unk_vec
     print('', flush=True)
     return vectors
 
@@ -106,18 +120,18 @@ def build_model():
     print('# [Info] Building model...')
     model = Sequential()
     model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=True, activation='sigmoid'),
+                  return_sequences=True, activation='tanh'),
                   input_shape=(MAX_LENGTH, EMBEDDING_DIM)))
     model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=True, activation='sigmoid')))
+                  return_sequences=True, activation='tanh')))
     model.add(Bidirectional(GRU(256, dropout=DROPOUT, recurrent_dropout=RECURRENT_DROPOUT,
-                  return_sequences=False, activation='sigmoid')))
+                  return_sequences=False, activation='tanh')))
     neurons = [256]
     for neuron in neurons:
         model.add(Dense(neuron, activation='relu'))
         model.add(BatchNormalization())
         model.add(Dropout(DROPOUT))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dense(2, activation='sigmoid'))
     return model
 
 ''' Load training data '''
@@ -151,6 +165,8 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
 result = model.evaluate(X_train, Y_train)
 print('# [Info] Train Acc:', result[1])
+result = model.evaluate(X_val, Y_val)
+print('# [Info] Val Acc:', result[1])
 
 ''' Save model '''
 model.save(model_fpath)
