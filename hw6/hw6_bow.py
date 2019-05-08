@@ -6,19 +6,16 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.layers import BatchNormalization
 from keras.utils import np_utils, to_categorical
-
 from keras.models import load_model
 
 import jieba
 from gensim.models import Word2Vec
 
 TEST = False
-NUM = 70000
-
+NUM = 119018
 VAL_RATIO = 0.1
 BATCH_SIZE = 100
-EPOCHS = 12
-
+EPOCHS = 16
 DROPOUT = 0.2
 
 ''' Handle argv '''
@@ -61,46 +58,36 @@ def split_train_val(X, Y, val_ratio, shuffle=False):
 
 def text_segmentation(X):
     segment = []
-    filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n '+'～＠＃＄％︿＆＊（）！？⋯  ，。'
     for i, sentence in enumerate(X):
         print('\r# [Info] Segmenting sentences... {} / {}'.format(i+1, len(X)), end='', flush=True)
         word_list = []
-        for c in filters:
-            sentence = sentence.replace(c, '')
         for word in jieba.cut(sentence, cut_all=False):
             if word[0] == 'B': continue
-            if word[0] == 'b': continue
             word_list.append(word)
         segment.append(word_list)
     print('', flush=True)
     return segment
 
-def build_dict(X):
+def build_dict():
+    print('# [Info] Loading W2V model...')
+    embed = Word2Vec.load(w2v_fpath)
+    print('#    - Vocab size: {}'.format(len(embed.wv.vocab)))
     word_dict = dict()
     cnt = 0
-    for i, sentence in enumerate(X):
-        if i > int(len(X) * (1.0 - VAL_RATIO)): continue
-        print('\r# [Info] Building word dictionary... {} / {}'.format(i+1, len(X)), end='', flush=True)
-        for j, word in enumerate(sentence):
-            if len(word) > 4 or len(word) < 2: continue
-            if word[0] == 'B': continue
-            if word[0] == 'b': continue
-            if word in [' ', '  ', '']: continue
-            if word not in word_dict:
-                word_dict[word] = cnt
-                cnt += 1
+    for i, word in enumerate(embed.wv.vocab):
+        print('\r# [Info] Building word dictionary... {} / {}'.format(i+1, len(embed.wv.vocab)), end='', flush=True)
+        word_dict[word] = cnt
+        cnt += 1
     print('', flush=True)
-    print(word_dict)
     return word_dict
 
 def sentence_to_bag(word_dict, segment):
-    print(len(segment), len(word_dict))
     vectors = np.zeros((len(segment), len(word_dict)), dtype=int)
     for i, sentence in enumerate(segment):
+        print('# [Info] Sentence to bag... {} / {}'.format(i+1, len(segment)), end='', flush=True)
         for j, word in enumerate(sentence):
             if word in word_dict:
                 vectors[i, word_dict[word]] += 1
-    print(vectors.shape)
     return vectors
 
 ''' Load training data '''
@@ -132,8 +119,7 @@ else:
     X_train = X_train[0:NUM]
     Y_train = Y_train[0:NUM]
     X_train_segment = text_segmentation(X_train)
-    #X_test_segment = text_segmentation(X_test)
-    word_dict = build_dict(X_train_segment)
+    word_dict = build_dict()
     X_train = sentence_to_bag(word_dict, X_train_segment)
     Y_train = np_utils.to_categorical(Y_train, 2)
 
@@ -141,13 +127,11 @@ else:
 X_train, Y_train, X_val, Y_val = split_train_val(X_train, Y_train, VAL_RATIO)
 print('# [Info] train / val : {} / {}.'.format(len(X_train), len(X_val)))
 
-word_num = len(word_dict)
-
 ''' Build model '''
-def build_model():
+def build_model(size):
     print('# [Info] Building model...')
     model = Sequential()
-    model.add(Dense(units=512, input_dim=word_num, activation='relu'))
+    model.add(Dense(units=512, input_dim=size, activation='relu'))
     model.add(BatchNormalization())
     model.add(Dropout(DROPOUT))
     neurons = [256, 128]
@@ -155,14 +139,11 @@ def build_model():
         model.add(Dense(neuron, activation='relu'))
         model.add(BatchNormalization())
         model.add(Dropout(DROPOUT))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dense(2, activation='sigmoid'))
     return model
 
-word_dict = dict()
-X_train_segment = list()
-
 ''' Build model '''
-model = build_model()
+model = build_model(len(word_dict))
 model.summary()
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
