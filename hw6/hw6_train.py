@@ -152,10 +152,21 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 
 ''' Train Train Train '''
 train_history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, verbose=1, validation_data=(X_val, Y_val))
-result = model.evaluate(X_train, Y_train)
+result = model.evaluate(X_train, Y_train, batch_size=BATCH_SIZE)
 print('# [Info] Train Acc:', result[1])
 result = model.evaluate(X_val, Y_val)
 print('# [Info] Val Acc:', result[1])
+
+def dump_train_history(train_history):
+    model_type = 'RNN'
+    item_type = ['acc', 'val_acc', 'loss', 'val_loss' ]
+    for item in item_type:
+        filename = '{}_{}.csv'.format(model_type, item)
+        data = train_history.history[item]
+        with open(filename, 'w') as f:
+            for i in enumerate(data):
+                f.write('{}\n'.format(i[1]))
+dump_train_history(train_history)
 
 ''' Save model '''
 model.save(model_fpath)
