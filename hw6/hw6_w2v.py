@@ -79,5 +79,3 @@ Y_train = Y_train[0:119018]
 X_train_segment = text_segmentation(X_train)
 X_test_segment = text_segmentation(X_test)
 embed = build_embed(X_train_segment + X_test_segment)
-X_train = word_to_vector(embed, X_train_segment)
-Y_train = np_utils.to_categorical(Y_train, 2)
