@@ -29,7 +29,7 @@ np.random.seed(0)
 MAX_LENGTH = 40
 EMBEDDING_DIM = 200
 
-BATCH_SIZE = 500
+BATCH_SIZE = 256
 
 def load_X(fpath):
     data = pd.read_csv(fpath)
