@@ -81,9 +81,10 @@ def predict(args, data):
     print('# [Info] Clustering...')
     encoder = load_model(args.encoder)
     encoded_data = encoder.predict(data)
-    clf = cluster.KMeans(init='k-means++', n_clusters=2, random_state=0)
+    clf = cluster.KMeans(init='k-means++', n_clusters=2, random_state=32)
     clf.fit(encoded_data)
     predict = clf.predict(encoded_data)
+    print(predict)
 
     print('# [Info] Making prediction: {}'.format(len(test_id)))
     labels = []
@@ -96,8 +97,8 @@ def predict(args, data):
     print('# [Info] Output prediction: {}'.format(prediction_fpath))
     with open(prediction_fpath, 'w') as f:
         f.write('id,label\n')
-        for id, label in zip(test_id, labels):
-            f.write('%d,%d\n' %(id, label))
+        for i, label in zip(test_id, labels):
+            f.write('%d,%d\n' %(i, label))
 
 def main(args):
     # preprocess = Preprocess(args.image_dir, args)
@@ -105,10 +106,7 @@ def main(args):
     # np.save('flatten_images.npy', flatten_images)
     flatten_images = np.load('flatten_images.npy')
 
-    TEST_ONLY = True
-    # TEST_ONLY = False
-    if TEST_ONLY == False:
-        build_train_model(args, flatten_images)
+    build_train_model(args, flatten_images)
     predict(args, flatten_images)
 
 if __name__ == "__main__":
@@ -120,9 +118,9 @@ if __name__ == "__main__":
     parser.add_argument('--test', default=None, type=str, help='[Input] Your testing file')
     parser.add_argument('--prediction', default=None, type=str, help='[Output] Your prediction file')
 
-    parser.add_argument('--latent_dim', default=128, type=int)
-    parser.add_argument('--batch', default=128, type=int)
-    parser.add_argument('--epoch', default=50, type=int)
+    parser.add_argument('--latent_dim', default=64, type=int)
+    parser.add_argument('--batch', default=512, type=int)
+    parser.add_argument('--epoch', default=80, type=int)
     args = parser.parse_args()
     print(args)
     main(args)
