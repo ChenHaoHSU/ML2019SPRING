@@ -40,40 +40,46 @@ class Preprocess():
             flatten_images[i] = self.images[i].flatten()
         return flatten_images
 
-def build_model(args):
-    input_img = Input(shape=(32*32,))
+def build_model(args, data):
+    # Encoder
+    input_img = Input(shape=(32*32*3,))
     encoded = Dense(128, activation='relu')(input_img)
     encoded = Dense(64, activation='relu')(encoded)
     encoded = Dense(32, activation='relu')(encoded)
-    encoded_output = Dense(latent_dim)(encoded)
+    encoded_output = Dense(args.latent_dim)(encoded)
     # Decoder
     decoded = Dense(32, activation='relu')(encoded_output)
     decoded = Dense(64, activation='relu')(decoded)
     decoded = Dense(128, activation='relu')(decoded)
-    decoded = Dense(28*28, activation='tanh')(decoded)
+    decoded = Dense(32*32*3, activation='tanh')(decoded)
     # Build Encoder
     encoder = Model(input=input_img, output=encoded_output)
     # Build Autoencoder
     autoencoder = Model(input=input_img, output=decoded)
     autoencoder.compile(optimizer='adam', loss='mse')
-    autoencoder.fit(data_norm, data_norm, epochs=40, batch_size=512, shuffle=True)
+    autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1)
     autoencoder.summary()
     # Save Model
-    autoencoder.save('autoencoder.h5')
-    encoder.save('encoder.h5')
+    autoencoder.save(args.autoencoder_fpath)
+    encoder.save(args.encoder_fpath)
 
 def main(args):
-    preprocess = Preprocess(args.image_dir, args)
-    flatten_images = preprocess.get_flatten_images()
-    # np.save('flatten_images.npy', flatten_images)
+    #preprocess = Preprocess(args.image_dir, args)
+    #flatten_images = preprocess.get_flatten_images()
+    #np.save('flatten_images.npy', flatten_images)
+
+    flatten_images = np.load('flatten_images.npy')
+    build_model(args, flatten_images)    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('image_dir', type=str, help='[Input] Your training image directory')
-    parser.add_argument('output_model', type=str, help='[Output] Your model')
+    parser.add_argument('encoder_fpath', type=str, help='[Output] Your encoder model')
+    parser.add_argument('autoencoder_fpath', type=str, help='[Output] Your autoencoder model')
 
-    parser.add_argument('--batch', default=128, type=int)
-    parser.add_argument('--epoch', default=100, type=int)
+    parser.add_argument('--latent_dim', default=32, type=int)
+    parser.add_argument('--batch', default=256, type=int)
+    parser.add_argument('--epoch', default=50, type=int)
     args = parser.parse_args()
     print(args)
     main(args)

@@ -12,3 +12,4 @@ hw4/output/*
 !hw5/labels.csv
 *.model
 *.h5
+hw7/*.npy
