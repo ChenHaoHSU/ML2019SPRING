@@ -73,7 +73,8 @@ def build_train_model_conv(args, data):
     # Compile and train
     encoder = Model(input=input_img, output=encoded)
     autoencoder = Model(input=input_img, output=decoded)
-    autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+    autoencoder.summary()
+    autoencoder.compile(optimizer='adam', loss='mse')
     autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True)
     # Save models
     encoder.save(args.encoder)
@@ -123,6 +124,9 @@ def predict(args, data):
     print('# [Info] Clustering...')
     encoder = load_model(args.encoder)
     encoded_data = encoder.predict(data)
+    print(encoded_data.shape)
+    encoded_data = encoded_data.reshape(len(data),-1)
+    print(encoded_data.shape)
     clf = cluster.KMeans(init='k-means++', n_clusters=2, random_state=32)
     clf.fit(encoded_data)
     predict = clf.predict(encoded_data)
@@ -135,6 +139,14 @@ def predict(args, data):
             labels.append(1)
         else:
             labels.append(0)
+        '''
+        import matplotlib.pyplot as plt
+        plt.imshow(data[test_image1[i]-1])
+        plt.plot()
+        plt.imshow(data[test_image2[i]-1])
+        plt.plot()
+        print(labels[-1])
+        '''
 
     print('# [Info] Output prediction: {}'.format(prediction_fpath))
     with open(prediction_fpath, 'w') as f:
