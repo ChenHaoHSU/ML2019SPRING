@@ -5,8 +5,9 @@ import pandas as pd
 from keras.models import Sequential
 from keras.models import Model
 from keras.layers import Input
-from keras.layers import Dense, Dropout
-from keras.layers import BatchNormalization
+from keras.layers import UpSampling2D, Conv2D, MaxPooling2D
+from keras.layers import Dense
+from keras.layers import BatchNormalization, Dropout, Activation
 from keras.utils import np_utils, to_categorical
 from keras.models import load_model
 
@@ -38,6 +39,47 @@ class Preprocess():
         for i in range(shape[0]):
             flatten_images[i] = self.images[i].flatten()
         return flatten_images
+
+def build_train_model_conv(args, data):
+    input_img = Input(shape=(32, 32, 3))
+    x = Conv2D(64, (3, 3), padding='same')(input_img)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(16, (3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    encoded = MaxPooling2D((2, 2), padding='same')(x)
+
+    x = Conv2D(16, (3, 3), padding='same')(encoded)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(64, (3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(3, (3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    decoded = Activation('sigmoid')(x)
+    # Compile and train
+    encoder = Model(input=input_img, output=encoded)
+    autoencoder = Model(input=input_img, output=decoded)
+    autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+    autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True)
+    # Save models
+    encoder.save(args.encoder)
+    print('# [Info] Encoder model saved: {}'.format(args.encoder))
+    autoencoder.save(args.autoencoder)
+    print('# [Info] Autoencoder model saved: {}'.format(args.autoencoder))
 
 def build_train_model(args, data):
     # Encoder
@@ -102,12 +144,18 @@ def predict(args, data):
 
 def main(args):
     # preprocess = Preprocess(args.image_dir, args)
+
     # flatten_images = preprocess.get_flatten_images()
     # np.save('flatten_images.npy', flatten_images)
-    flatten_images = np.load('flatten_images.npy')
+    # flatten_images = np.load('flatten_images.npy')
+    # build_train_model(args, flatten_images)
+    # predict(args, flatten_images)
 
-    build_train_model(args, flatten_images)
-    predict(args, flatten_images)
+    # images = preprocess.get_images()
+    # np.save('images.npy', images)
+    images = np.load('images.npy')
+    build_train_model_conv(args, images)
+    predict(args, images)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
