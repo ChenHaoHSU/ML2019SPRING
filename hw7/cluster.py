@@ -39,7 +39,18 @@ class Preprocess():
             flatten_images[i] = self.images[i].flatten()
         return flatten_images
 
+def split_train_val(X, val_ratio, shuffle=False):
+    if shuffle == True:
+        indices = np.arange(len(X))
+        np.random.shuffle(indices)
+        X = X[indices]
+    train_len = int(X.shape[0] * (1.0 - val_ratio))
+    return X[:train_len], X[train_len:]
+
 def build_train_model_conv(args, data):
+    # Split training and validation set
+    data_train, data_val = split_train_val(data, args.val)
+
     # Build layers
     input_img = Input(shape=(32, 32, 3))
     x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(input_img)
@@ -58,7 +69,7 @@ def build_train_model_conv(args, data):
     autoencoder = Model(input=input_img, output=decoded)
     autoencoder.summary()
     autoencoder.compile(optimizer='adam', loss='mse')
-    autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True)
+    autoencoder.fit(data_train, data_train, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True, validation_data=(data_val, data_val))
     # Save models
     encoder.save(args.encoder)
     print('# [Info] Encoder model saved: {}'.format(args.encoder))
@@ -97,10 +108,11 @@ def predict(args, data):
     print('# [Info] Clustering (kmeans)...')
     kmeans = KMeans(init='k-means++', n_clusters=2, max_iter=2000, random_state=0, n_jobs=8).fit(encoded_data)
     labels = kmeans.predict(encoded_data)
-    print(labels)
+    # print(labels)
     for i in range(20):
         print('{}: {}'.format(i+1, labels[i]))
 
+    # Check if labels are the same
     print('# [Info] Making prediction: {}'.format(len(test_id)))
     answers = []
     for i in range(len(test_id)):
@@ -108,15 +120,8 @@ def predict(args, data):
             answers.append(1)
         else:
             answers.append(0)
-        '''
-        import matplotlib.pyplot as plt
-        plt.imshow(data[test_image1[i]-1])
-        plt.show()
-        plt.imshow(data[test_image2[i]-1])
-        plt.show()
-        print(answers[-1])
-        '''
 
+    # Output results
     print('# [Info] Output prediction: {}'.format(prediction_fpath))
     with open(prediction_fpath, 'w') as f:
         f.write('id,label\n')
@@ -124,6 +129,9 @@ def predict(args, data):
             f.write('%d,%d\n' %(i, ans))
 
 def main(args):
+    # Fix random seeds
+    np.random.seed(args.seed)
+
     # preprocess = Preprocess(args.image_dir, args)
     # images = preprocess.get_images()
     # np.save('images.npy', images)
@@ -143,6 +151,8 @@ if __name__ == "__main__":
     parser.add_argument('--latent_dim', default=64, type=int)
     parser.add_argument('--batch', default=256, type=int)
     parser.add_argument('--epoch', default=100, type=int)
+    parser.add_argument('--val', default=0.1, type=float)
+    parser.add_argument('--seed', default=0, type=int)
     args = parser.parse_args()
     print(args)
     main(args)
