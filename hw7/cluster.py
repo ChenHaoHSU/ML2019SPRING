@@ -6,9 +6,7 @@ from keras.models import Sequential
 from keras.models import Model
 from keras.layers import Input
 from keras.layers import UpSampling2D, Conv2D, MaxPooling2D
-from keras.layers import Dense
-from keras.layers import BatchNormalization, Dropout, Activation
-from keras.utils import np_utils, to_categorical
+from keras.layers import Dense, BatchNormalization
 from keras.models import load_model
 
 from PIL import Image
@@ -106,6 +104,8 @@ def predict(args, data):
     print('# [Info] Loading test: {}'.format(test_fpath))
     test_id, test_image1, test_image2 = load_test(test_fpath)
 
+    # My encoder
+    print('# [Info] My encoder...')
     encoder = load_model(args.encoder)
     encoded_data = encoder.predict(data)
     print(encoded_data.shape)
@@ -113,11 +113,12 @@ def predict(args, data):
     print(encoded_data.shape)
 
     # pca
+    print('# [Info] PCA...')
     pca = PCA(n_components=200, whiten=True, random_state=0)
     encoded_data = pca.fit_transform(encoded_data)
 
     # kmeans
-    print('# [Info] Clustering...')
+    print('# [Info] Clustering (kmeans)...')
     kmeans = KMeans(init='k-means++', n_clusters=2, max_iter=2000, random_state=0, n_jobs=8).fit(encoded_data)
     labels = kmeans.predict(encoded_data)
     print(labels)
