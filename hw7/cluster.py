@@ -116,6 +116,7 @@ def predict(args, data):
     print('# [Info] PCA...')
     pca = PCA(n_components=200, whiten=True, random_state=0)
     encoded_data = pca.fit_transform(encoded_data)
+    print(encoded_data.shape)
 
     # kmeans
     print('# [Info] Clustering (kmeans)...')
