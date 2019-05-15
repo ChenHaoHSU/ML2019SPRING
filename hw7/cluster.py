@@ -118,7 +118,7 @@ def predict(args, data):
 
     # kmeans
     print('# [Info] Clustering...')
-    kmeans = KMeans(init='k-means++', n_clusters=2, max_iter=1000, random_state=0, n_jobs=8).fit(encoded_data)
+    kmeans = KMeans(init='k-means++', n_clusters=2, max_iter=2000, random_state=0, n_jobs=8).fit(encoded_data)
     labels = kmeans.predict(encoded_data)
     print(labels)
     for i in range(20):
