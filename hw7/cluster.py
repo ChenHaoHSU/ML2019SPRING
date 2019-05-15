@@ -8,7 +8,6 @@ from keras.layers import Input
 from keras.layers import UpSampling2D, Conv2D, MaxPooling2D
 from keras.layers import Dense, BatchNormalization
 from keras.models import load_model
-from keras.preprocessing.image import ImageDataGenerator
 
 from PIL import Image
 from sklearn.cluster import KMeans
@@ -61,42 +60,6 @@ def build_train_model_conv(args, data):
     autoencoder.compile(optimizer='adam', loss='mse')
     autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True)
     # Save models
-    encoder.save(args.encoder)
-    print('# [Info] Encoder model saved: {}'.format(args.encoder))
-    autoencoder.save(args.autoencoder)
-    print('# [Info] Autoencoder model saved: {}'.format(args.autoencoder))
-
-def build_train_model(args, data):
-    # Data augmentation
-    datagen = ImageDataGenerator(
-        featurewise_center=False, featurewise_std_normalization=False,
-        width_shift_range=0.2, height_shift_range=0.2,
-        horizontal_flip=False, vertical_flip=False,
-        rotation_range=12, zoom_range=0.5,
-        fill_mode='nearest')
-    datagen.fit(data)
-
-    # Encoder
-    input_img = Input(shape=(32*32*3,))
-    encoded = Dense(128, activation='relu')(input_img)
-    encoded = Dense(64, activation='relu')(encoded)
-    encoded = Dense(32, activation='relu')(encoded)
-    encoded_output = Dense(args.latent_dim)(encoded)
-    # Decoder
-    decoded = Dense(32, activation='relu')(encoded_output)
-    decoded = Dense(64, activation='relu')(decoded)
-    decoded = Dense(128, activation='relu')(decoded)
-    decoded = Dense(32*32*3, activation='tanh')(decoded)
-    # Build Encoder
-    encoder = Model(input=input_img, output=encoded_output)
-    # Build Autoencoder
-    autoencoder = Model(input=input_img, output=decoded)
-    autoencoder.summary()
-    autoencoder.compile(optimizer='adam', loss='mse')
-    # autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True)
-    autoencoder.fit_generator(datagen.flow(data, batch_size=args.batch, shuffle=True),
-                              epochs=args.epoch, verbose=1, shuffle=True)
-    # Save Model
     encoder.save(args.encoder)
     print('# [Info] Encoder model saved: {}'.format(args.encoder))
     autoencoder.save(args.autoencoder)
@@ -161,16 +124,9 @@ def predict(args, data):
             f.write('%d,%d\n' %(i, ans))
 
 def main(args):
-    preprocess = Preprocess(args.image_dir, args)
-
-    # flatten_images = preprocess.get_flatten_images()
-    # np.save('flatten_images.npy', flatten_images)
-    # flatten_images = np.load('flatten_images.npy')
-    # build_train_model(args, flatten_images)
-    # predict(args, flatten_images)
-
-    images = preprocess.get_images()
-    np.save('images.npy', images)
+    # preprocess = Preprocess(args.image_dir, args)
+    # images = preprocess.get_images()
+    # np.save('images.npy', images)
     images = np.load('images.npy')
     build_train_model_conv(args, images)
     predict(args, images)
