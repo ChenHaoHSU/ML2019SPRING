@@ -12,7 +12,8 @@ from keras.utils import np_utils, to_categorical
 from keras.models import load_model
 
 from PIL import Image
-from sklearn import *
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
 class Preprocess():
     def __init__(self, image_dir, args):
@@ -42,34 +43,19 @@ class Preprocess():
 
 def build_train_model_conv(args, data):
     input_img = Input(shape=(32, 32, 3))
-    x = Conv2D(64, (3, 3), padding='same')(input_img)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Conv2D(32, (3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Conv2D(16, (3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    encoded = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(input_img)
+    x = MaxPooling2D((2, 2), activation='relu', padding='same', data_format='channels_last')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
+    encoded = MaxPooling2D((2, 2), padding='same', data_format='channels_last')(x)
 
-    x = Conv2D(16, (3, 3), padding='same')(encoded)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(32, (3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(64, (3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(3, (3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    decoded = Activation('sigmoid')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_last')(encoded)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
+    x = UpSampling2D((2, 2), data_format='channels_last')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
+    x = UpSampling2D((2, 2), data_format='channels_last')(x)
+    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same',data_format="channels_last")(x)
+
     # Compile and train
     encoder = Model(input=input_img, output=encoded)
     autoencoder = Model(input=input_img, output=decoded)
@@ -127,32 +113,33 @@ def predict(args, data):
     print(encoded_data.shape)
     encoded_data = encoded_data.reshape(len(data),-1)
     print(encoded_data.shape)
-    clf = cluster.KMeans(init='k-means++', n_clusters=2, random_state=32)
-    clf.fit(encoded_data)
-    predict = clf.predict(encoded_data)
-    print(predict)
+
+    # kmeans
+    kmeans = KMeans(n_clusters=2, max_iter=3000, random_state=0, n_jobs=4).fit(cluster_imgs).fit(encoded_data)
+    labels = clf.predict(encoded_data)
+    print(labels)
 
     print('# [Info] Making prediction: {}'.format(len(test_id)))
-    labels = []
+    answers = []
     for i in range(len(test_id)):
         if predict[test_image1[i]-1] == predict[test_image2[i]-1]:
-            labels.append(1)
+            answers.append(1)
         else:
-            labels.append(0)
+            answers.append(0)
         '''
         import matplotlib.pyplot as plt
         plt.imshow(data[test_image1[i]-1])
-        plt.plot()
+        plt.show()
         plt.imshow(data[test_image2[i]-1])
-        plt.plot()
-        print(labels[-1])
+        plt.show()
+        print(answers[-1])
         '''
 
     print('# [Info] Output prediction: {}'.format(prediction_fpath))
     with open(prediction_fpath, 'w') as f:
         f.write('id,label\n')
-        for i, label in zip(test_id, labels):
-            f.write('%d,%d\n' %(i, label))
+        for i, ans in zip(test_id, answers):
+            f.write('%d,%d\n' %(i, ans))
 
 def main(args):
     # preprocess = Preprocess(args.image_dir, args)
@@ -166,7 +153,7 @@ def main(args):
     # images = preprocess.get_images()
     # np.save('images.npy', images)
     images = np.load('images.npy')
-    build_train_model_conv(args, images)
+    # build_train_model_conv(args, images)
     predict(args, images)
 
 if __name__ == "__main__":
@@ -179,8 +166,8 @@ if __name__ == "__main__":
     parser.add_argument('--prediction', default=None, type=str, help='[Output] Your prediction file')
 
     parser.add_argument('--latent_dim', default=64, type=int)
-    parser.add_argument('--batch', default=512, type=int)
-    parser.add_argument('--epoch', default=80, type=int)
+    parser.add_argument('--batch', default=128, type=int)
+    parser.add_argument('--epoch', default=200, type=int)
     args = parser.parse_args()
     print(args)
     main(args)
