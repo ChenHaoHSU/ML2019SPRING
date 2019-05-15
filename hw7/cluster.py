@@ -42,15 +42,14 @@ class Preprocess():
         return flatten_images
 
 def build_train_model_conv(args, data):
+    # Build layers
     input_img = Input(shape=(32, 32, 3))
     x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(input_img)
-    x = MaxPooling2D((2, 2), activation='relu', padding='same', data_format='channels_last')(x)
+    x = MaxPooling2D((2, 2), padding='same', data_format='channels_last')(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
     encoded = MaxPooling2D((2, 2), padding='same', data_format='channels_last')(x)
 
-    x = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_last')(encoded)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(encoded)
     x = UpSampling2D((2, 2), data_format='channels_last')(x)
     x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
     x = UpSampling2D((2, 2), data_format='channels_last')(x)
@@ -107,22 +106,28 @@ def predict(args, data):
     print('# [Info] Loading test: {}'.format(test_fpath))
     test_id, test_image1, test_image2 = load_test(test_fpath)
 
-    print('# [Info] Clustering...')
     encoder = load_model(args.encoder)
     encoded_data = encoder.predict(data)
     print(encoded_data.shape)
     encoded_data = encoded_data.reshape(len(data),-1)
     print(encoded_data.shape)
 
+    # pca
+    pca = PCA(n_components=200, whiten=True, random_state=0)
+    encoded_data = pca.fit_transform(encoded_data)
+
     # kmeans
-    kmeans = KMeans(n_clusters=2, max_iter=3000, random_state=0, n_jobs=4).fit(cluster_imgs).fit(encoded_data)
-    labels = clf.predict(encoded_data)
+    print('# [Info] Clustering...')
+    kmeans = KMeans(init='k-means++', n_clusters=2, max_iter=1000, random_state=0, n_jobs=8).fit(encoded_data)
+    labels = kmeans.predict(encoded_data)
     print(labels)
+    for i in range(20):
+        print('{}: {}'.format(i+1, labels[i]))
 
     print('# [Info] Making prediction: {}'.format(len(test_id)))
     answers = []
     for i in range(len(test_id)):
-        if predict[test_image1[i]-1] == predict[test_image2[i]-1]:
+        if labels[test_image1[i]-1] == labels[test_image2[i]-1]:
             answers.append(1)
         else:
             answers.append(0)
@@ -153,7 +158,7 @@ def main(args):
     # images = preprocess.get_images()
     # np.save('images.npy', images)
     images = np.load('images.npy')
-    # build_train_model_conv(args, images)
+    #build_train_model_conv(args, images)
     predict(args, images)
 
 if __name__ == "__main__":
@@ -166,8 +171,8 @@ if __name__ == "__main__":
     parser.add_argument('--prediction', default=None, type=str, help='[Output] Your prediction file')
 
     parser.add_argument('--latent_dim', default=64, type=int)
-    parser.add_argument('--batch', default=128, type=int)
-    parser.add_argument('--epoch', default=200, type=int)
+    parser.add_argument('--batch', default=256, type=int)
+    parser.add_argument('--epoch', default=100, type=int)
     args = parser.parse_args()
     print(args)
     main(args)
