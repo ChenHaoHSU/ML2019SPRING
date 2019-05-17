@@ -38,21 +38,39 @@ print('image_data.shape: {}'.format(image_data.shape))
 
 # Calculate mean & Normalize
 mean = np.mean(image_data, axis = 0)
-image_data = image_data - mean 
-
-print(image_data)
+image_data -= mean 
 
 # Use SVD to find the eigenvectors 
 u, s, v = np.linalg.svd(image_data.T, full_matrices=False)
 print('u.shape: {}'.format(u.shape))
 print('s.shape: {}'.format(s.shape))
 print('v.shape: {}'.format(v.shape))
-print(u)
-print(s)
+
+################
+# Reproduce
+################
+
+# Load image & Normalize
+filename = os.path.join(image_dir, input_fpath)
+print('# [Info] Problem 1.c: {}'.format(filename))
+picked_img = imread(filename)
+X = picked_img.flatten().astype('float32')
+X -= mean
+
+# Compression
+weights = np.dot(X, u[:, :k])
+
+# Reconstruction
+M = np.dot(weights, u[:, :k].T) + mean
+reconstruct = process(M)
+imsave(output_fpath, reconstruct.reshape(img_shape))
+
+################
+# Report
+################
 
 # Report Problem 1.c
 test_image = ['1.jpg','10.jpg','22.jpg','37.jpg','72.jpg']
-tt = []
 for x in test_image:
     # Load image & Normalize
     filename = os.path.join(image_dir, x)
@@ -63,37 +81,22 @@ for x in test_image:
 
     # Compression
     weights = np.dot(X, u[:, :k])
-    print(X)
-    print(u[:, :k])
-    print(weights)
-    print('weights.shape: {}'.format(weights.shape))
     
     # Reconstruction
-    print(u[:, :k].shape)
-    print(np.dot(weights, u[:, :k].T))
     M = np.dot(weights, u[:, :k].T) + mean
     reconstruct = process(M)
-    tt.append(reconstruct)
-    print('reconstruct.shape: {}'.format(reconstruct.shape))
     imsave(x[:-4] + '_reconstruction.jpg', reconstruct.reshape(img_shape))
-
-    # import matplotlib.pyplot as plt
-    # plt.imshow(reconstruct.reshape(img_shape))
-    # plt.show()
-
-print(tt)
-print(mean)
 
 # Report Problem 1.a
 average = process(mean)
-imsave('Q1a.jpg', average.reshape(img_shape))  
+imsave('Q1a_mean.jpg', average.reshape(img_shape))  
 
 # Report Problem 1.b
-for i in range(5):
+for i in range(10):
     eigenface = process(u[:, i].T)
     imsave('Q1b_{}_eigenface.jpg'.format(i), eigenface.reshape(img_shape))  
 
 # Report Problem 1.d
 for i in range(5):
     number = s[i] * 100 / sum(s)
-    print('Q1d: {}'.format(number))
+    print('Q1d: {} - {}%'.format(i, number))
