@@ -52,7 +52,7 @@ print('v.shape: {}'.format(v.shape))
 
 # Load image & Normalize
 filename = os.path.join(image_dir, input_fpath)
-print('# [Info] Problem 1.c: {}'.format(filename))
+print('# [Info] Reproduce: {}'.format(filename))
 picked_img = imread(filename)
 X = picked_img.flatten().astype('float32')
 X -= mean
@@ -64,17 +64,19 @@ weights = np.dot(X, u[:, :k])
 M = np.dot(weights, u[:, :k].T) + mean
 reconstruct = process(M)
 imsave(output_fpath, reconstruct.reshape(img_shape))
+print('    - Save {}!'.format(output_fpath))
 
 ################
 # Report
 ################
 
 # Report Problem 1.c
+print('# [Info] Problem 1.c')
 test_image = ['1.jpg','10.jpg','22.jpg','37.jpg','72.jpg']
 for x in test_image:
     # Load image & Normalize
     filename = os.path.join(image_dir, x)
-    print('# [Info] Problem 1.c: {}'.format(filename))
+    print('    - Load {}...'.format(filename))
     picked_img = imread(filename)
     X = picked_img.flatten().astype('float32')
     X -= mean
@@ -85,18 +87,27 @@ for x in test_image:
     # Reconstruction
     M = np.dot(weights, u[:, :k].T) + mean
     reconstruct = process(M)
-    imsave(x[:-4] + '_reconstruction.jpg', reconstruct.reshape(img_shape))
+    filename_rec = x[:-4] + '_reconstruction.jpg'
+    imsave(filename_rec, reconstruct.reshape(img_shape))
+    print('    - Save {}!'.format(filename_rec))
 
 # Report Problem 1.a
+print('# [Info] Problem 1.a')
 average = process(mean)
-imsave('Q1a_mean.jpg', average.reshape(img_shape))  
+filename = 'mean.jpg'
+imsave(filename, average.reshape(img_shape))  
+print('    - Save {}!'.format(filename))
 
 # Report Problem 1.b
+print('# [Info] Problem 1.b')
 for i in range(10):
     eigenface = process(u[:, i].T)
-    imsave('Q1b_{}_eigenface.jpg'.format(i), eigenface.reshape(img_shape))  
+    filename = '{}_eigenface.jpg'.format(i)
+    imsave(filename, eigenface.reshape(img_shape)) 
+    print('    - Save {}!'.format(filename))
 
 # Report Problem 1.d
+print('# [Info] Problem 1.d')
 for i in range(5):
     number = s[i] * 100 / sum(s)
-    print('Q1d: {} - {}%'.format(i, number))
+    print('    - {} - {:<2.2f}%'.format(i, number))
