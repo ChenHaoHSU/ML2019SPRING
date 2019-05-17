@@ -32,19 +32,19 @@ def load_images(fpath):
     print('', flush=True)
     return np.array(img_data).astype('float32'), img_shape
 
+# Load all images
 image_data, img_shape = load_images(image_dir)
-print('image_shape: {}'.format(img_shape))
-print('image_data.shape: {}'.format(image_data.shape))
 
 # Calculate mean & Normalize
 mean = np.mean(image_data, axis = 0)
 image_data -= mean 
 
 # Use SVD to find the eigenvectors 
+print('# [Info] Decomposition...')
 u, s, v = np.linalg.svd(image_data.T, full_matrices=False)
-print('u.shape: {}'.format(u.shape))
-print('s.shape: {}'.format(s.shape))
-print('v.shape: {}'.format(v.shape))
+print('    - u.shape: {}'.format(u.shape))
+print('    - s.shape: {}'.format(s.shape))
+print('    - v.shape: {}'.format(v.shape))
 
 ################
 # Reproduce
@@ -56,10 +56,8 @@ print('# [Info] Reproduce: {}'.format(filename))
 picked_img = imread(filename)
 X = picked_img.flatten().astype('float32')
 X -= mean
-
 # Compression
 weights = np.dot(X, u[:, :k])
-
 # Reconstruction
 M = np.dot(weights, u[:, :k].T) + mean
 reconstruct = process(M)
