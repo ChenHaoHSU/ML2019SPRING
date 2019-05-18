@@ -49,11 +49,7 @@ def split_train_val(X, val_ratio, shuffle=False):
     return X[:train_len], X[train_len:]
 
 def build_train_model_conv(args, data):
-    # Split training and validation set
-    #data_train, data_val = split_train_val(data, args.val)
-
     # Build layers
-    '''
     input_img = Input(shape=(32, 32, 3))
     x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(input_img)
     x = MaxPooling2D((2, 2), padding='same', data_format='channels_last')(x)
@@ -65,22 +61,6 @@ def build_train_model_conv(args, data):
     x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
     x = UpSampling2D((2, 2), data_format='channels_last')(x)
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same',data_format="channels_last")(x)
-    '''
-
-    input_img = Input(shape=(32, 32, 3))
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(input_img)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
-    x = Flatten()(x)
-    x = Dense(1024, activation='relu')(x)
-    encoded = Dense(512, activation='relu')(x) 
-
-    x = Dense(512, activation='relu')(encoded)
-    x = Dense(1024, activation='relu')(x)
-    x = Dense(32*32*32, activation='relu')(x)
-    x = Reshape((32, 32, 32))(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_last')(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same',data_format="channels_last")(x)
 
     # Compile and train
     encoder = Model(input=input_img, output=encoded)
@@ -88,7 +68,6 @@ def build_train_model_conv(args, data):
     autoencoder.summary()
     autoencoder.compile(optimizer='adam', loss='mse')
     autoencoder.fit(data, data, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True)
-    #autoencoder.fit(data_train, data_train, epochs=args.epoch, batch_size=args.batch, verbose=1, shuffle=True, validation_data=(data_val, data_val))
     # Save models
     encoder.save(args.encoder)
     print('# [Info] Encoder model saved: {}'.format(args.encoder))
