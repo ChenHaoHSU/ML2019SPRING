@@ -125,16 +125,40 @@ def predict(args, data):
         for i, ans in zip(test_id, answers):
             f.write('%d,%d\n' %(i, ans))
 
+# def autoencoder(args, data):
+#     autoencoder = load_model(args.autoencoder)
+#     autoencoded_data = autoencoder.predict(data)
+#     indices = list(range(32))
+#     import matplotlib.pyplot as plt
+#     # Original images
+#     for i, index in enumerate(indices):
+#         plt.subplot(4, 8, i+1)
+#         plt.xticks([], [])
+#         plt.yticks([], [])
+#         plt.imshow(data[index])
+#     plt.savefig('Qb1_ori.jpg')
+#     plt.show()
+#     plt.close()
+#     # Reconstructed images
+#     for i, index in enumerate(indices):
+#         plt.subplot(4, 8, i+1)
+#         plt.xticks([], [])
+#         plt.yticks([], [])
+#         plt.imshow(autoencoded_data[index])
+#     plt.savefig('Qb1_rec.jpg')
+#     plt.show()
+
 def main(args):
     # Fix random seeds
     np.random.seed(args.seed)
 
-    # preprocess = Preprocess(args.image_dir, args)
-    # images = preprocess.get_images()
+    preprocess = Preprocess(args.image_dir, args)
+    images = preprocess.get_images()
     # np.save('images.npy', images)
-    images = np.load('images.npy')
-    build_train_model_conv(args, images)
+    # images = np.load('images.npy')
+    # build_train_model_conv(args, images)
     predict(args, images)
+    # autoencoder(args, images)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
