@@ -11,7 +11,7 @@ from keras.layers import Dense, BatchNormalization
 from keras.models import load_model
 
 from PIL import Image
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, Birch
 from sklearn.decomposition import PCA
 
 class Preprocess():
@@ -109,6 +109,13 @@ def predict(args, data):
     for i in range(20):
         print('{}: {}'.format(i+1, labels[i]))
 
+    '''
+    # birch
+    birch = Birch(n_clusters=2, branching_factor=50)
+    birch.fit(encoded_data)
+    labels = birch.labels_
+    '''
+
     # Check if labels are the same
     print('# [Info] Making prediction: {}'.format(len(test_id)))
     answers = []
@@ -150,7 +157,7 @@ def predict(args, data):
 
 def main(args):
     # Fix random seeds
-    np.random.seed(args.seed)
+    np.random.seed(0)
 
     preprocess = Preprocess(args.image_dir, args)
     images = preprocess.get_images()
@@ -169,11 +176,8 @@ if __name__ == "__main__":
     parser.add_argument('--test', default=None, type=str, help='[Input] Your testing file')
     parser.add_argument('--prediction', default=None, type=str, help='[Output] Your prediction file')
 
-    parser.add_argument('--latent_dim', default=64, type=int)
     parser.add_argument('--batch', default=512, type=int)
     parser.add_argument('--epoch', default=100, type=int)
-    parser.add_argument('--val', default=0.1, type=float)
-    parser.add_argument('--seed', default=0, type=int)
     args = parser.parse_args()
     print(args)
     main(args)
