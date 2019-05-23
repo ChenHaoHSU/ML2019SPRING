@@ -148,6 +148,46 @@ def predict(args, data):
 #     plt.savefig('Qb1_rec.jpg')
 #     plt.show()
 
+# def visualize():
+#     import matplotlib.pyplot as plt
+
+#     data = np.load('../data/hw7/visualization.npy')
+#     data = data.reshape(-1,32*32*3)
+#     # pca
+#     print('# [Info] PCA...')
+#     pca = PCA(n_components=2, whiten=True, random_state=0)
+#     encoded_data = pca.fit_transform(data)
+#     print(encoded_data.shape)
+
+#     # kmeans
+#     print('# [Info] Clustering (kmeans)...')
+#     kmeans = KMeans(init='k-means++', n_clusters=2, max_iter=2000, random_state=0, n_jobs=8).fit(encoded_data)
+#     labels = kmeans.labels_
+
+#     true_labels = [ 1 for i in range(2500) ] + [ 0 for i in range(2500) ]
+
+#     error = 0
+#     for i in range(5000):
+#         if true_labels[i] != labels[i]:
+#             error += 1
+#     print(error)
+
+#     label0_x, label0_y = [], []
+#     label1_x, label1_y = [], []
+#     for i, (x, y) in enumerate(encoded_data[:,:2]):
+#         if labels[i] == 0: # change to true_labels
+#             label0_x.append(x)
+#             label0_y.append(y)
+#         else:
+#             label1_x.append(x)
+#             label1_y.append(y)
+
+#     l0 = plt.scatter(label0_x, label0_y, c='blue', marker='.')
+#     l1 = plt.scatter(label1_x, label1_y, c='red', marker='.')
+#     plt.legend((l0, l1), ('Dataset A', 'Dataset B'), scatterpoints=1, loc='upper right', fontsize=8)
+#     plt.savefig('my_labels.jpg') # change to 'true_labels.jpg'
+#     plt.show()
+
 def main(args):
     # Fix random seeds
     np.random.seed(args.seed)
