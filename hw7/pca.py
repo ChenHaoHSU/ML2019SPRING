@@ -8,7 +8,7 @@ input_fpath = sys.argv[2]
 output_fpath = sys.argv[3]
 print('# [Info] Argv')
 print('    - Image directory     : {}'.format(image_dir))
-print('    - Input image         : {}'.format(input_fpath))
+print('    - Input image         : {}'.format(os.path.join(image_dir, input_fpath)))
 print('    - Reconstructed image : {}'.format(output_fpath))
 
 # Number of principal components used
@@ -67,6 +67,7 @@ print('    - Save {}!'.format(output_fpath))
 ################
 # Report
 ################
+'''
 
 # Report Problem 1.c
 print('# [Info] Problem 1.c')
@@ -109,3 +110,4 @@ print('# [Info] Problem 1.d')
 for i in range(5):
     number = s[i] * 100 / sum(s)
     print('    - {} - {:<2.2f}%'.format(i, number))
+'''
