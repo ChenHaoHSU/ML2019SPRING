@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
+import keras
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten
 from keras.layers import Dense, Dropout, Activation
@@ -15,6 +16,13 @@ from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
 
+from keras.applications import mobilenet
+from keras.applications.mobilenet import MobileNet
+from keras.applications.mobilenet import preprocess_input, decode_predictions
+from keras.models import Model, load_model
+from keras import applications
+from keras import optimizers
+from keras import backend as K
 
 def load_train(train_fpath):
     normalization = False
@@ -33,7 +41,14 @@ def load_train(train_fpath):
 def train_val_split(X_train, Y_train, val_size=0.1):
     train_len = int(round(len(X_train)*(1-val_size)))
     return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
-    
+
+def load_original():
+    model = MobileNet(input_shape=(48, 48, 1))
+    model.compile(loss="categorical_crossentropy",
+              optimizer="adam",
+              metrics=['accuracy'])
+    return model
+
 # Agrv handling
 train_fpath = sys.argv[1]
 model_fpath = sys.argv[2]
@@ -47,7 +62,6 @@ Y_train = np_utils.to_categorical(Y_train, 7)
 print('X_train.shape:', X_train.shape)
 print('Y_train.shape:', Y_train.shape)
 
-'''
 # Split into training set and validation set
 val_size = 0.1
 X_train, Y_train, X_val, Y_val = train_val_split(X_train, Y_train, val_size)
@@ -55,7 +69,6 @@ print('X_train.shape:', X_train.shape)
 print('Y_train.shape:', Y_train.shape)
 print('X_val.shape:', X_val.shape)
 print('Y_val.shape:', Y_val.shape)
-'''
 
 # Image augmentation
 datagen = ImageDataGenerator(
@@ -66,35 +79,7 @@ datagen = ImageDataGenerator(
     fill_mode='nearest')
 datagen.fit(X_train)
 
-print('# Setting model...')
-dropout = 0.25
-model = Sequential()
-# CNN
-model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last', input_shape=(48, 48, 1)))
-model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-model.add(BatchNormalization())
-
-for i in range(2):
-    for j in range(2):
-        model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
-        model.add(BatchNormalization())
-    for j in range(1):
-        model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-        model.add(Dropout(dropout))
-
-model.add(Flatten())
-
-# DNN
-# model.add(Dense(input_dim=X_train.shape[1], units=1024, activation='relu'))
-# dnn_neurons = [1024, 1024, 1024, 1024, 512, 256, 128]
-dnn_neurons = [512, 256, 128]
-for neurons in dnn_neurons:
-    model.add(Dense(neurons, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(dropout))
-
-model.add(Dense(units=7, activation='softmax'))
-
+model = load_original()
 model.summary()
 
 print('# Compling model...')
