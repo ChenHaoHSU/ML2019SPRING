@@ -47,11 +47,36 @@ def train_val_split(X_train, Y_train, val_size=0.1):
     train_len = int(round(len(X_train)*(1-val_size)))
     return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
 
-def load_original():
+def build_mobilenet():
     model = MobileNet(input_shape=(48, 48, 1), weights=None, dropout=0.2, classes=7)
     model.compile(loss="categorical_crossentropy",
               optimizer="adam",
               metrics=['accuracy'])
+    return model
+
+def build_cnn():
+    dropout = 0.25
+    model = Sequential()
+    # CNN
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last', input_shape=(48, 48, 1)))
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    model.add(BatchNormalization())
+    for i in range(2):
+        for j in range(2):
+            model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
+            model.add(BatchNormalization())
+        for j in range(1):
+            model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+            model.add(Dropout(dropout))
+    # flatten
+    model.add(Flatten())
+    # DNN
+    dnn_neurons = [512, 256, 128]
+    for neurons in dnn_neurons:
+        model.add(Dense(neurons, activation='relu'))
+        model.add(BatchNormalization())
+        model.add(Dropout(dropout))
+    model.add(Dense(units=7, activation='softmax'))
     return model
 
 # Agrv handling
@@ -86,7 +111,7 @@ datagen = ImageDataGenerator(
     fill_mode='nearest')
 datagen.fit(X_train)
 
-model = load_original()
+model = build_mobilenet()
 model.summary()
 
 print('# Compling model...')
