@@ -57,8 +57,10 @@ def load_original():
 # Agrv handling
 train_fpath = sys.argv[1]
 model_fpath = sys.argv[2]
-print('# Train : {}'.format(train_fpath))
-print('# Model : {}'.format(model_fpath))
+weights_fpath = sys.argv[3]
+print('# Train   : {}'.format(train_fpath))
+print('# Model   : {}'.format(model_fpath))
+print('# Weights : {}'.format(weights_fpath))
 
 # Loading training data
 print('# Loading data...')
@@ -107,3 +109,5 @@ print('\nTrain Acc:', result[1])
 
 print('# Saving model...')
 model.save(model_fpath)
+print('# Saving weights...')
+mode.save_weights(weights_fpath)
