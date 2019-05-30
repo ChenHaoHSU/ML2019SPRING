@@ -14,3 +14,4 @@ hw4/output/*
 *.h5
 hw7/*.npy
 hw7/*.jpg
+hw8/*.npy

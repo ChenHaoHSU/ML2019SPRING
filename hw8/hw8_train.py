@@ -28,6 +28,10 @@ def load_train(train_fpath):
     normalization = False
     data = pd.read_csv(train_fpath)
     Y_train = np.array(data['label'].values, dtype=int)
+    
+    X_train = np.load('X_train.npy')
+    return X_train, Y_train
+    
     X_train = []
     for features in data['feature'].values:
         split_features = [ int(i) for i in features.split(' ') ]
@@ -36,6 +40,7 @@ def load_train(train_fpath):
         X_train.append(matrix_features)
     X_train = np.array(X_train, dtype=float)
     X_train = X_train / 255.0
+    np.save('X_train.npy', X_train)
     return X_train, Y_train
 
 def train_val_split(X_train, Y_train, val_size=0.1):
@@ -43,7 +48,7 @@ def train_val_split(X_train, Y_train, val_size=0.1):
     return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
 
 def load_original():
-    model = MobileNet(input_shape=(48, 48, 1))
+    model = MobileNet(input_shape=(48, 48, 1), weights=None, dropout=0.2, classes=7)
     model.compile(loss="categorical_crossentropy",
               optimizer="adam",
               metrics=['accuracy'])
@@ -89,13 +94,13 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accur
 
 print('# Start training...')
 # train_history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_val, Y_val))
-train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
 # train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-#                                     steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
-#                                     validation_data=(X_val, Y_val),
-#                                     validation_steps=len(X_val)/batch_size,
-#                                     epochs=epochs)
+#                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
+train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
+                                     steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
+                                     validation_data=(X_val, Y_val),
+                                     validation_steps=len(X_val)/batch_size,
+                                     epochs=epochs)
 
 result = model.evaluate(X_train, Y_train)
 print('\nTrain Acc:', result[1])
