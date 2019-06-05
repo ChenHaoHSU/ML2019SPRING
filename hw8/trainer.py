@@ -29,6 +29,7 @@ class trainer():
         self.loss_fn = nn.CrossEntropyLoss()
         self.loss = None
         self.optimizer = torch.optim.Adam(self.parameters, lr=3e-4)
+        
     def train(self, num_epochs, is_validation=1):
         tot_valid = [(0 ,0.0)]
         earlystop = 0
@@ -58,15 +59,11 @@ class trainer():
                 progress = ('#' * int(float(i)/len(self.train_loader)*40)).ljust(40)
                 print ('[%03d/%03d] %2.2f sec(s) | %s |' % (epoch, num_epochs, \
                 (time.time() - epoch_start_time), progress), end='\r', flush=True)
-    
             
             #validation
             if is_validation == 1:
-              
                 valid_acc = self.valid() 
                 print("Epoch: {}, Loss: {:.4f}, Acc: {:.4f}, valid_Acc: {:.4f}".format(epoch, np.mean(train_loss), np.mean(train_acc) , np.mean(valid_acc)))
-                
-                #earlystopping
                 if np.mean(valid_acc) > max(tot_valid,key=itemgetter(1))[1]:
                     torch.save(self.model.state_dict(), 'epoch-'+str(epoch)+'.pt')
                     tot_valid.append((epoch , np.mean(valid_acc)))
@@ -87,7 +84,7 @@ class trainer():
             valid_acc.append(acc)
         return valid_acc
     
-    def test(self , ensemble=False):
+    def test(self, ensemble=False):
         self.model.eval()
         predict_list = []
         for _, data_x in enumerate(self.test_loader):
@@ -98,7 +95,6 @@ class trainer():
         
             output = self.model(data)
             
-            
             predict = torch.max(output, 1)[1]
             for i in predict:
                 predict_list.append(i)
@@ -107,23 +103,12 @@ class trainer():
             predict_list= np.concatenate(predict_list , axis = 0)
             return predict_list
         else:
-            self.writepredict(predict = predict_list , output = "vgg.csv" )
+            self.writepredict(predict=predict_list, output="vgg.csv" )
             return
-            
 
-    def writepredict(predict , output):
-    #flat_list = [item for sublist in predict for item in sublist]
-        with open(output , 'w') as f:
-            subwriter = csv.writer(f , delimiter = ',')
-            subwriter.writerow(["id" , "label"])
+    def writepredict(predict, output):
+        with open(output, 'w') as f:
+            subwriter = csv.writer(f, delimiter=',')
+            subwriter.writerow(["id", "label"])
             for i in range(len(predict)):
                 subwriter.writerow([str(i+1) , predict[i]])
-
-
-
-
-        
-
-   
-        
-        
