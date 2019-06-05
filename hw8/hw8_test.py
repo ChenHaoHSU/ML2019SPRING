@@ -1,15 +1,11 @@
-import csv 
 import numpy as np
-import math
 import sys
-from torch_data import MyDataset
-from torch.utils.data import DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
-import torch.nn as nn
 import torch
-from trainer import trainer
-from model import *
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+
+from model import *
+from torch_data import MyDataset
 
 # Fix random seeds
 np.random.seed(0)
@@ -21,11 +17,13 @@ torch.backends.cudnn.benchmark = False
 # parameters
 BATCH_SIZE = 256
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 test_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5],std=[0.5]),
-            ])
+    ])
 
 # Argv
 test_fpath = sys.argv[1]
@@ -40,21 +38,14 @@ test_dataset = MyDataset(testx_file=test_fpath, is_train=False, save=True, trans
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
 
 model = MobileNet_Li28()
-if torch.cuda.is_available() :
-    model.load_state_dict(torch.load(model_fpath))
-    model = model.cuda()
-else:
-    model.load_state_dict(torch.load(model_fpath, map_location='cpu'))
+model.load_state_dict(torch.load(model_fpath))
+model.to(device)
 
 model.eval()
 predict_list = []
-for _, data_x in enumerate(test_loader):
-    if torch.cuda.is_available():
-        data = data_x.cuda()
-    else:
-        data = data_x.cpu()
-        
-    output = model(data)
+for _, data in enumerate(test_loader):
+    data_device = data.to(device)   
+    output = model(data_device)
     predict = torch.max(output, 1)[1]
     for i in predict:
         predict_list.append(i)
