@@ -29,7 +29,7 @@ class trainer():
         self.loss_fn = nn.CrossEntropyLoss()
         self.loss = None
         self.optimizer = torch.optim.Adam(self.parameters, lr=3e-4)
-        
+
     def train(self, num_epochs, is_validation=1):
         tot_valid = [(0 ,0.0)]
         earlystop = 0
@@ -92,20 +92,24 @@ class trainer():
                 data = data_x.cuda()
             else:
                 data = data_x.cpu()
-        
             output = self.model(data)
-            
-            predict = torch.max(output, 1)[1]
-            for i in predict:
-                predict_list.append(i)
+            if ensemble:
+                if ensemble:
+                    output = output.cpu()
+                output = output.detach().numpy()
+                predict_list.append(output)
+            else:
+                predict = torch.max(output, 1)[1]
+                for i in predict:
+                    predict_list.append(i)
 
         if ensemble :
             predict_list= np.concatenate(predict_list , axis = 0)
             return predict_list
         else:
-            self.writepredict(predict=predict_list, output="vgg.csv" )
+            self.writepredict(predict = predict_list , output = "vgg.csv" )
             return
-
+            
     def writepredict(predict, output):
         with open(output, 'w') as f:
             subwriter = csv.writer(f, delimiter=',')
