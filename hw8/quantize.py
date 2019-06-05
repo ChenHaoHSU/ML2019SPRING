@@ -3,7 +3,7 @@ from model import MobileNet
 import sys
 import os
 model_path = sys.argv[1]
-out_path = os.path.join('quantized' , 'quantized'+model_path)
+out_path = sys.argv[2]
 
 model_dict = torch.load(model_path)
 
