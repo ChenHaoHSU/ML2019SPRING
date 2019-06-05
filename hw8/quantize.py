@@ -1,14 +1,8 @@
-import torch
-from model import MobileNet
 import sys
-import os
-model_path = sys.argv[1]
-out_path = sys.argv[2]
-
-model_dict = torch.load(model_path)
-
+import torch
+original_path = sys.argv[1]
+quantized_path = sys.argv[2]
+model_dict = torch.load(original_path)
 for key, value in model_dict.items():
-   
     model_dict[key] = value.type(torch.cuda.HalfTensor)
-
-torch.save(model_dict, out_path)
+torch.save(model_dict, quantized_path)
