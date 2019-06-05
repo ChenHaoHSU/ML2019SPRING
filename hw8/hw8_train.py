@@ -1,138 +1,99 @@
-import sys
-import csv
-import math
-import pickle
+import csv 
 import numpy as np
-import pandas as pd
+import math
+import sys
+from torch_data import MyDataset
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
+import torchvision.transforms as transforms
+import torch.nn as nn
+import torch
+from model import *
+from trainer import trainer
 
-import keras
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Flatten
-from keras.layers import Dense, Dropout, Activation
-from keras.layers import ZeroPadding2D, BatchNormalization
-from keras.optimizers import SGD, Adam
-from keras.utils import np_utils, to_categorical
-from keras.layers.pooling import MaxPooling2D, AveragePooling2D
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ModelCheckpoint
 
-from keras.applications import mobilenet
-from keras.applications.mobilenet import MobileNet
-from keras.applications.mobilenet import preprocess_input, decode_predictions
-from keras.models import Model, load_model
-from keras import applications
-from keras import optimizers
-from keras import backend as K
-
-def load_train(train_fpath):
-    normalization = False
-    data = pd.read_csv(train_fpath)
-    Y_train = np.array(data['label'].values, dtype=int)
+def main():
+# Hyper-parameters 
+    input_size = 103
+    num_classes = 7
+    num_epochs = 600
+    batch_size = 64
+    validation_split = 0.1
+    final_model_name = 'nn-epoch'+str(num_epochs)+'.pt'
+    can_train = True
+    is_validation = 1
+    earlystop = 80
+    ensemble=1
+    out_path = ''
+#########################################feature transforming###################################
+    train_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(54),
+        transforms.RandomCrop(48),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5],std=[0.5]),
+    ])
+    val_transform = transforms.Compose([
+            transforms.ToPILImage()  , 
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5],std=[0.5]),
+    ])
+    test_transform = transforms.Compose([
+           transforms.ToPILImage()  , 
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5],std=[0.5]),
+    ])
+###################################### loading and cutting validation set########################
+    train_dataset = MyDataset(  train_file =sys.argv[1] ,save= True, is_train = True, transform= train_transform )
+    val_dataset = MyDataset(is_train = True,
+                            loadfiles=("train_x.npy" , "train_y.npy") , transform= val_transform )    
     
-    X_train = np.load('X_train.npy')
-    return X_train, Y_train
+    if can_train == False:
+        test_dataset = MyDataset(testx_file= sys.argv[2] , 
+                            is_train = False , save = False , transform= test_transform)
+        test_loader = DataLoader(dataset=test_dataset,batch_size=batch_size,shuffle=False) 
     
-    X_train = []
-    for features in data['feature'].values:
-        split_features = [ int(i) for i in features.split(' ') ]
-        matrix_features = np.array(split_features).reshape(48, 48, 1)
-        #matrix_features = np.array(split_features).reshape(48*48)
-        X_train.append(matrix_features)
-    X_train = np.array(X_train, dtype=float)
-    X_train = X_train / 255.0
-    np.save('X_train.npy', X_train)
-    return X_train, Y_train
+    if is_validation == 0:
+        train_loader = DataLoader(dataset=train_dataset,
+                        batch_size=batch_size,
+                        shuffle=True)
+    else:
+        #creating validation set
+        dataset_len = len(train_dataset)
+        print(dataset_len)
+        indices = list(range(dataset_len))
+        val_len = int(np.floor(validation_split * dataset_len))
+        validation_idx = np.random.choice(indices, size=val_len, replace=False)
+        train_idx = list(set(indices) - set(validation_idx))
+        train_sampler = SubsetRandomSampler(train_idx)
+        validation_sampler = SubsetRandomSampler(validation_idx)
+        print("len train:" , len(train_idx))
+        print("len valid:" , len(validation_idx))
+        #print(train_idx)
+        train_loader = DataLoader(dataset=train_dataset,
+                            batch_size=batch_size,
+                             sampler = train_sampler)
+        validation_loader = DataLoader(dataset=val_dataset,
+                            batch_size=batch_size,
+                            sampler = validation_sampler)
 
-def train_val_split(X_train, Y_train, val_size=0.1):
-    train_len = int(round(len(X_train)*(1-val_size)))
-    return X_train[0:train_len], Y_train[0:train_len], X_train[train_len:None], Y_train[train_len:None]
-
-def build_mobilenet():
-    model = MobileNet(input_shape=(48, 48, 1), weights=None, dropout=0.2, classes=7)
-    model.compile(loss="categorical_crossentropy",
-              optimizer="adam",
-              metrics=['accuracy'])
-    return model
-
-def build_cnn():
-    dropout = 0.25
-    model = Sequential()
-    # CNN
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last', input_shape=(48, 48, 1)))
-    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    model.add(BatchNormalization())
-    for i in range(2):
-        for j in range(2):
-            model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
-            model.add(BatchNormalization())
-        for j in range(1):
-            model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-            model.add(Dropout(dropout))
-    # flatten
-    model.add(Flatten())
-    # DNN
-    dnn_neurons = [512, 256, 128]
-    for neurons in dnn_neurons:
-        model.add(Dense(neurons, activation='relu'))
-        model.add(BatchNormalization())
-        model.add(Dropout(dropout))
-    model.add(Dense(units=7, activation='softmax'))
-    return model
-
-# Agrv handling
-train_fpath = sys.argv[1]
-model_fpath = sys.argv[2]
-weights_fpath = sys.argv[3]
-print('# Train   : {}'.format(train_fpath))
-print('# Model   : {}'.format(model_fpath))
-print('# Weights : {}'.format(weights_fpath))
-
-# Loading training data
-print('# Loading data...')
-X_train, Y_train = load_train(train_fpath)
-Y_train = np_utils.to_categorical(Y_train, 7)
-print('X_train.shape:', X_train.shape)
-print('Y_train.shape:', Y_train.shape)
-
-# Split into training set and validation set
-val_size = 0.1
-X_train, Y_train, X_val, Y_val = train_val_split(X_train, Y_train, val_size)
-print('X_train.shape:', X_train.shape)
-print('Y_train.shape:', Y_train.shape)
-print('X_val.shape:', X_val.shape)
-print('Y_val.shape:', Y_val.shape)
-
-# Image augmentation
-datagen = ImageDataGenerator(
-    featurewise_center=False, featurewise_std_normalization=False,
-    width_shift_range=0.2, height_shift_range=0.2,
-    horizontal_flip=False, vertical_flip=False,
-    rotation_range=12, zoom_range=0.5,
-    fill_mode='nearest')
-datagen.fit(X_train)
-
-model = build_mobilenet()
-model.summary()
-
-print('# Compling model...')
-batch_size = 100
-epochs = 100
-model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-
-print('# Start training...')
-# train_history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_val, Y_val))
-# train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-#                                    epochs=epochs, steps_per_epoch=5*math.ceil(len(X_train)/batch_size))
-train_history = model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-                                     steps_per_epoch=5*math.ceil(len(X_train)/batch_size),
-                                     validation_data=(X_val, Y_val),
-                                     validation_steps=len(X_val)/batch_size,
-                                     epochs=epochs)
-
-result = model.evaluate(X_train, Y_train)
-print('\nTrain Acc:', result[1])
-
-print('# Saving model...')
-model.save(model_fpath)
-print('# Saving weights...')
-mode.save_weights(weights_fpath)
+        for _, batch in  enumerate(train_loader):
+            
+            data_x , target = batch
+            print ('Size of image:', data_x.size())  # batch_size*1*48*48
+            print ('Type of image:', data_x.dtype)   # float32
+            print ('Size of target:', target.size()) 
+            break
+####################################training##############################
+    cnn = MobileNet_Li28()
+    if can_train ==True:
+    
+        cnn = MobileNet_Li28()
+        CNNtrainer = trainer(model = cnn , train_dataloader=train_loader
+                    ,validation_loader=validation_loader, prefix = sys.argv[3])
+        CNNtrainer.train(num_epochs = num_epochs ,  is_validation = is_validation , max_earlystop= earlystop , ensemble = 0)
+if __name__ == "__main__":
+    main()
+    

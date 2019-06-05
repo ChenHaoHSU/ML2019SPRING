@@ -1,70 +1,89 @@
-import sys
-import csv
-import pickle
+import csv 
 import numpy as np
-import pandas as pd
+import math
+import sys
+from torch_data import MyDataset
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
+import torch.nn as nn
+import torch
+from trainer import trainer
+from model import *
+import torchvision.transforms as transforms
 
-from keras.models import load_model
-from keras.applications.mobilenet import MobileNet
+####################
+batch_size = 128
+num_transform = 20
+num_emsemble = 1
 
-def load_test(test_fpath):
-    normalization = False
-    data = pd.read_csv(test_fpath)
-    id_test = np.array(data['id'].values, dtype=int)
-    X_test = []
-    for features in data['feature'].values:
-        split_features = [ int(i) for i in features.split(' ') ]
-        matrix_features = np.array(split_features).reshape(48, 48, 1)
-        X_test.append(matrix_features)
-    X_test = np.array(X_test, dtype=float)
-    X_test = X_test / 255.0
-    return X_test, id_test
+test_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(54),
+        transforms.RandomCrop(48),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5],std=[0.5]),
+            ])
+"""
+test_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5],std=[0.5]),
+            ])         
+"""
+def main():
+    predict_list = []
+    for count in range(num_transform):
+        print("ensembling transform"+str(count))
 
-def build_cnn():
-    dropout = 0.25
-    model = Sequential()
-    # CNN
-    model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last', input_shape=(48, 48, 1)))
-    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    model.add(BatchNormalization())
-    for i in range(2):
-        for j in range(2):
-            model.add(Conv2D(256, (3, 3), activation='relu', padding='same', data_format='channels_last'))
-            model.add(BatchNormalization())
-        for j in range(1):
-            model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-            model.add(Dropout(dropout))
-    # flatten
-    model.add(Flatten())
-    # DNN
-    dnn_neurons = [512, 256, 128]
-    for neurons in dnn_neurons:
-        model.add(Dense(neurons, activation='relu'))
-        model.add(BatchNormalization())
-        model.add(Dropout(dropout))
-    model.add(Dense(units=7, activation='softmax'))
-    return model
+        if count == 0:
+            test_dataset = MyDataset(testx_file= sys.argv[1] , 
+                                    is_train = False , save = True , transform= test_transform)
+        else:
+            test_dataset = MyDataset(loadfiles= "test_x.npy" , 
+                                    is_train = False , save = False , transform= test_transform)            
+        test_loader = DataLoader(dataset=test_dataset,batch_size=batch_size,shuffle=False) 
+        
+        for i in range(num_emsemble):
+            print("ensembling model"+str(i))
+            predict_list.append(ensemble(modelname = sys.argv[2], test_loader = test_loader))
+    # print(predict_list)
+        
+        print(predict_list[-1].shape)
+        #input()
+        #mean
+    predict_list = np.array(predict_list)
+    print(predict_list.shape)
+    predict_list = predict_list.mean(axis = 0)
+    #print(predict_list.shape)
+    # predict_list = torch.Tensor(predict_list)
+    # output = torch.sum(predict_list , dim = 0)
+    predicts = predict_list.argmax(axis = 1)
+    #print(predicts.shape)
+    # predicts = torch.max(output, dim =1)[1] 
+    writepredict(predict = predicts , output = sys.argv[3])
+    
 
-def build_mobilenet():
-    model = MobileNet(input_shape=(48, 48, 1), weights=None, dropout=0.2, classes=7)
-    model.compile(loss="categorical_crossentropy",
-              optimizer="adam",
-              metrics=['accuracy'])
-    return model
+def ensemble(modelname,test_loader ):
+    model = MobileNet_Li28()
+    if torch.cuda.is_available() :
+        model.load_state_dict(torch.load(modelname ))
+    else:
+        model.load_state_dict(torch.load(modelname  , map_location='cpu'))
+    CNNtrainer = trainer(model = model , test_dataloader=test_loader) 
+    predicts = CNNtrainer.test(ensemble= True)
+    #model.eval()
+    return predicts
+    
+  
+def writepredict(predict , output):
+    #flat_list = [item for sublist in predict for item in sublist]
+    with open(output , 'w') as f:
+        subwriter = csv.writer(f , delimiter = ',')
+        subwriter.writerow(["id" , "label"])
+        for i in range(len(predict)):
+            subwriter.writerow([str(i) , predict[i]])
 
-test_fpath = sys.argv[1]
-output_fpath = sys.argv[2]
-model_fpath = sys.argv[3]
-print('# Test   : {}'.format(test_fpath))
-print('# Output : {}'.format(output_fpath))
-print('# Model  : {}'.format(model_fpath))
-
-X_test, id_test = load_test(test_fpath)
-
-model = load_model(model_fpath)
-prediction = model.predict(X_test)
-
-with open(output_fpath, 'w') as f:
-    f.write('id,label\n')
-    for i, p in zip(id_test, prediction):
-        f.write('%d,%d\n' %(i, np.argmax(p)))
+if __name__ == "__main__":
+    main()
