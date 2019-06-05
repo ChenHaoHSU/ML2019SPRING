@@ -14,11 +14,13 @@ torch.cuda.manual_seed(0)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-# parameters
+# Parameters
 BATCH_SIZE = 256
 
+# Determine device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+# Transforms
 test_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.ToTensor(),
@@ -34,25 +36,29 @@ print('    - Test   : {}'.format(test_fpath))
 print('    - Model  : {}'.format(model_fpath))
 print('    = Output : {}'.format(output_fpath))
 
+# Make data loader
 test_dataset = MyDataset(testx_file=test_fpath, is_train=False, save=True, transform=test_transform)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
 
+# Load model
 model = MobileNet_Li28()
 model.load_state_dict(torch.load(model_fpath))
 model.to(device)
 
+# Model prediction
 model.eval()
-predict_list = []
-for _, data in enumerate(test_loader):
+prediction = []
+for i, data in enumerate(test_loader):
     data_device = data.to(device)   
     output = model(data_device)
-    predict = torch.max(output, 1)[1]
-    for i in predict:
-        predict_list.append(i)
+    labels = torch.max(output, 1)[1]
+    for label in labels:
+        prediction.append(label)
 
+# Output prediction
 print('# [Info] Output prediction: {}'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
-    for i, v in enumerate(predict_list):
+    for i, v in enumerate(prediction):
         f.write('%d,%d\n' %(i, v))
 print('Done!')
