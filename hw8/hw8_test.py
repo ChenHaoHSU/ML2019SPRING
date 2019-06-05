@@ -42,7 +42,7 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=Fa
 
 # Load model
 model = MobileNet_Li28()
-model.load_state_dict(torch.load(model_fpath))
+model.load_state_dict(torch.load(model_fpath, map_location=device))
 model.to(device)
 
 # Model prediction
