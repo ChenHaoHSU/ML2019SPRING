@@ -27,22 +27,6 @@ test_transform = transforms.Compose([
         transforms.Normalize(mean=[0.5],std=[0.5]),
             ])
 
-def ensemble(modelname, test_loader):
-    model = MobileNet_Li28()
-    if torch.cuda.is_available() :
-        model.load_state_dict(torch.load(modelname))
-    else:
-        model.load_state_dict(torch.load(modelname, map_location='cpu'))
-    CNNtrainer = trainer(model=model, test_dataloader=test_loader) 
-    predicts = CNNtrainer.test(ensemble= True)
-    return predicts
-
-# with open(output , 'w') as f:
-#     subwriter = csv.writer(f , delimiter = ',')
-#     subwriter.writerow(["id" , "label"])
-#     for i in range(len(predict)):
-#         subwriter.writerow([str(i) , predict[i]])
-
 # Argv
 test_fpath = sys.argv[1]
 model_fpath = sys.argv[2]
@@ -52,21 +36,13 @@ print('    - Test   : {}'.format(test_fpath))
 print('    - Model  : {}'.format(model_fpath))
 print('    = Output : {}'.format(output_fpath))
 
-# predict_list = []
-# test_dataset = MyDataset(testx_file=test_fpath, is_train=False, save=True, transform=test_transform)
-# test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
-# predict_list.append(ensemble(modelname=model_fpath, test_loader=test_loader))
-# predict_list = np.array(predict_list)
-# predict_list = predict_list.mean(axis=0)
-# predicts = predict_list.argmax(axis=1)
-# output_predict(predict=predicts, output_fpath=sys.argv[3])
-
 test_dataset = MyDataset(testx_file=test_fpath, is_train=False, save=True, transform=test_transform)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
 
 model = MobileNet_Li28()
 if torch.cuda.is_available() :
     model.load_state_dict(torch.load(model_fpath))
+    model = model.cuda()
 else:
     model.load_state_dict(torch.load(model_fpath, map_location='cpu'))
 
@@ -86,6 +62,6 @@ for _, data_x in enumerate(test_loader):
 print('# [Info] Output prediction: {}'.format(output_fpath))
 with open(output_fpath, 'w') as f:
     f.write('id,label\n')
-    for i, v in enumerate(predict):
+    for i, v in enumerate(predict_list):
         f.write('%d,%d\n' %(i, v))
 print('Done!')
