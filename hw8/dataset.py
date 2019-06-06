@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 def load_train(filename=None):
     return np.load('X_train.npy'), np.load('Y_train.npy')
     data = pd.read_csv(filename)
-    Y_train = np.array(data['label'].values, dtype=int)
+    Y_train = np.array(data['label'].values, dtype=np.float)
     X_train = []
     for features in data['feature'].values:
         split_features = [ int(i) for i in features.split(' ') ]
@@ -20,7 +20,7 @@ def load_train(filename=None):
     return X_train, Y_train
 
 def load_test(filename=None):
-    data = pd.read_csv(test_fpath)
+    data = pd.read_csv(filename)
     # id_test = np.array(data['id'].values, dtype=int)
     X_test = []
     for features in data['feature'].values:
@@ -42,9 +42,11 @@ class MyDataset(Dataset):
             
     def __len__(self):
         if self.is_train == True:
-            return len(self.X_train)
+
+            print(self.Y_train.shape[0])
+            return self.Y_train.shape[0]
         else: 
-            return len(self.X_test)
+            return self.X_test.shape[0]
     
     def __getitem__(self, idx):
         if self.is_train == True:

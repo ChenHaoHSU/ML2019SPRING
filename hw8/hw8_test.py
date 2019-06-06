@@ -4,8 +4,8 @@ import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-from model import MobileNet
-from torch_data import MyDataset
+from models import MobileNet
+from dataset import MyDataset
 
 # Fix random seeds
 np.random.seed(0)

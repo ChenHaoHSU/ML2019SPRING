@@ -23,8 +23,8 @@ VAL_RATIO = 0.1
 # Transforms
 train_transform = transforms.Compose([
     transforms.ToPILImage(),
-    transforms.Resize(54),
-    transforms.RandomCrop(48),
+    transforms.Resize(50),
+    transforms.RandomCrop(40),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(12),
     transforms.ToTensor(),
