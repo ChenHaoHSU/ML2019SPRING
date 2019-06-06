@@ -1,10 +1,10 @@
-import numpy as np
 import sys
+import numpy as np
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-from model import *
+from model import MobileNet
 from torch_data import MyDataset
 
 # Fix random seeds
@@ -41,7 +41,7 @@ test_dataset = MyDataset(testx_file=test_fpath, is_train=False, save=True, trans
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
 
 # Load model
-model = MobileNet_Li28()
+model = MobileNet()
 model.load_state_dict(torch.load(model_fpath, map_location=device))
 model.to(device)
 
