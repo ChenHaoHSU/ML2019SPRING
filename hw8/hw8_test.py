@@ -37,7 +37,7 @@ print('    - Model  : {}'.format(model_fpath))
 print('    = Output : {}'.format(output_fpath))
 
 # Make data loader
-test_dataset = MyDataset(testx_file=test_fpath, is_train=False, save=True, transform=test_transform)
+test_dataset = MyDataset(filename=test_fpath, is_train=False, transform=test_transform)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
 
 # Load model

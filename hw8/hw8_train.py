@@ -11,7 +11,7 @@ from trainer import Trainer
 from dataset import MyDataset
 
 train_fpath = sys.argv[1]
-weight_fpath = sys.argv[3]
+weight_fpath = sys.argv[2]
 print('# [Info] Argv')
 print('    - Train  : {}'.format(train_fpath))
 print('    = Weight : {}'.format(weight_fpath))
@@ -37,8 +37,8 @@ val_transform = transforms.Compose([
 ])
 
 # Create dataset
-train_dataset = MyDataset(train_file=train_fpath, is_train=True, transform=train_transform)
-val_dataset = MyDataset(train_file=train_fpath, is_train=True, transform=val_transform)    
+train_dataset = MyDataset(is_train=True, filename=train_fpath, transform=train_transform)
+val_dataset = MyDataset(is_train=True, filename=train_fpath, transform=val_transform)    
 
 # Split train and val
 dataset_len = len(train_dataset)
