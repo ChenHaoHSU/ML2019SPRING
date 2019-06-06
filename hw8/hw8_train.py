@@ -11,11 +11,9 @@ from trainer import Trainer
 from dataset import MyDataset
 
 train_fpath = sys.argv[1]
-model_fpath = sys.argv[2]
 weight_fpath = sys.argv[3]
 print('# [Info] Argv')
 print('    - Train  : {}'.format(train_fpath))
-print('    = Model  : {}'.format(model_fpath))
 print('    = Weight : {}'.format(weight_fpath))
 
 EPOCHS = 150
@@ -61,7 +59,6 @@ mobile = MobileNet()
 trainer = Trainer(model=mobile,
                   train_loader=train_loader,
                   val_loader=val_loader, 
-                  model_fpath=model_fpath,
                   weight_fpath=weight_fpath)
 trainer.train(epochs=EPOCHS)
 print('Done!')

@@ -42,7 +42,7 @@ class Trainer():
             
             # validation
             valid_acc = self._valid_acc() 
-            print("Epoch: {}, Loss: {:.4f}, Acc: {:.4f}, valid_Acc: {:.4f}".format(epoch, np.mean(train_loss), np.mean(train_acc) , np.mean(valid_acc)))
+            print('Epoch: {}, loss: {:.4f}, acc: {:.4f}, val_Acc: {:.4f}'.format(epoch, np.mean(train_loss), np.mean(train_acc) , np.mean(valid_acc)))
             if valid_acc >= max_val_acc:
                 torch.save(self.model.state_dict(), 'epoch{}_{}'.format(epoch, weight_fpath))
                 max_val_acc = valid_acc
