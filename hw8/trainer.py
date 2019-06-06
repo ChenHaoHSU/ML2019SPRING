@@ -21,13 +21,11 @@ class Trainer():
 
     def train(self, epochs):
         max_val_acc = 0
-        earlystop = 0
         for epoch in range(1, epochs+1):
             start_time = time.time()
             self.model.train()
             train_loss = []
             train_acc = []
-
             for i, (data, label) in enumerate(self.train_loader):
                 X = data.to(self.device)
                 Y = label.to(self.device)
@@ -41,10 +39,7 @@ class Trainer():
                 train_acc.append(acc)
                 train_loss.append(loss.item())
                 progress = ('#' * int(float(i)/len(self.train_loader)*40)).ljust(40)
-                print ('[%03d/%03d] %2.2f sec(s) | %s |' % (epoch, epochs, \
-                (time.time() - start_time), progress), end='\r', flush=True)
-            
-            # validation
+                print ('Epoch: %03d/%03d %2.1f sec(s) | %s |' % (epoch, epochs, (time.time() - start_time), progress), end='\r', flush=True)
             valid_acc = self._valid_acc() 
             print('Epoch: {}, loss: {:.4f}, acc: {:.4f}, val_Acc: {:.4f}'.format(epoch, np.mean(train_loss), np.mean(train_acc) , np.mean(valid_acc)))
             if np.mean(valid_acc) >= max_val_acc:
