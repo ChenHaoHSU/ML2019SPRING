@@ -58,6 +58,10 @@ val_loader = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE, sampler=val_
 # Train
 print('# [Info] Start training...')
 mobile = MobileNet()
-trainer = Trainer(model=mobile, train_loader=train_loader, val_loader=val_loader)
+trainer = Trainer(model=mobile,
+                  train_loader=train_loader,
+                  val_loader=val_loader, 
+                  model_fpath=model_fpath,
+                  weight_fpath=weight_fpath)
 trainer.train(epochs=EPOCHS)
 print('Done!')
