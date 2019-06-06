@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 
 def load_train(filename=None):
+    return np.load('X_train.npy'), np.load('Y_train.npy')
     data = pd.read_csv(filename)
     Y_train = np.array(data['label'].values, dtype=int)
     X_train = []
@@ -14,6 +15,8 @@ def load_train(filename=None):
         matrix_features = np.array(split_features).reshape(48, 48, 1)
         X_train.append(matrix_features)
     X_train = np.array(X_train, dtype=np.float)
+    np.save('X_train.npy', X_train)
+    np.save('Y_train.npy', Y_train)
     return X_train, Y_train
 
 def load_test(filename=None):

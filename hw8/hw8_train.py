@@ -41,13 +41,11 @@ train_dataset = MyDataset(is_train=True, filename=train_fpath, transform=train_t
 val_dataset = MyDataset(is_train=True, filename=train_fpath, transform=val_transform)    
 
 # Split train and val
-dataset_len = len(train_dataset)
-indices = list(range(dataset_len))
-val_len = int(np.floor(validation_split * dataset_len))
-
+data_len = len(train_dataset)
+indices = list(range(data_len))
+val_len = int(VAL_RATIO*data_len)
 val_idx = np.random.choice(indices, size=val_len, replace=False)
 train_idx = list(set(indices) - set(val_idx))
-
 train_sampler = SubsetRandomSampler(train_idx)
 val_sampler = SubsetRandomSampler(val_idx)
 train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, sampler = train_sampler)
