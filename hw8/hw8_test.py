@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-
 from models import MobileNet
 from dataset import MyDataset
 
@@ -13,20 +12,15 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-
-# Parameters
 BATCH_SIZE = 256
-
 # Determine device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
 # Transforms
 test_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5],std=[0.5]),
     ])
-
 # Argv
 test_fpath = sys.argv[1]
 model_fpath = sys.argv[2]
@@ -35,16 +29,13 @@ print('# [Info] Argv')
 print('    - Test   : {}'.format(test_fpath))
 print('    - Model  : {}'.format(model_fpath))
 print('    = Output : {}'.format(output_fpath))
-
 # Make data loader
 test_dataset = MyDataset(filename=test_fpath, is_train=False, transform=test_transform)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False) 
-
 # Load model
 model = MobileNet()
 model.load_state_dict(torch.load(model_fpath, map_location=device))
 model.to(device)
-
 # Model prediction
 model.eval()
 prediction = []
@@ -54,7 +45,6 @@ for i, data in enumerate(test_loader):
     labels = torch.max(output, 1)[1]
     for label in labels:
         prediction.append(label)
-
 # Output prediction
 print('# [Info] Output prediction: {}'.format(output_fpath))
 with open(output_fpath, 'w') as f:

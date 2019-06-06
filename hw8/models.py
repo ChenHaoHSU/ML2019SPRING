@@ -20,8 +20,8 @@ class MobileNet(nn.Module):
                 nn.ReLU(inplace=True),
             )
         self.model = nn.Sequential(
-            conv_bn( 1, 8, 1), 
-            conv_dw( 8, 8, 1),
+            conv_bn( 1,  8, 1), 
+            conv_dw( 8,  8, 1),
             conv_bn( 8, 16, 1),
             conv_dw(16, 16, 1),
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
@@ -38,7 +38,6 @@ class MobileNet(nn.Module):
         self.fc = nn.Sequential(
             nn.Dropout(0.1),
             nn.Linear(2304, 28),
-            #nn.Dropout(0.1),
             nn.BatchNorm1d(28),
             nn.ReLU(inplace=True),
             nn.Linear(28, 8),
