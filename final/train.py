@@ -266,7 +266,8 @@ def create_generators(args, preprocess_image):
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
             args.annotations,
-            args.classes,
+            # args.classes,
+            base_dir=args.pngdir,
             transform_generator=transform_generator,
             **common_args
         )
@@ -274,7 +275,8 @@ def create_generators(args, preprocess_image):
         if args.val_annotations:
             validation_generator = CSVGenerator(
                 args.val_annotations,
-                args.classes,
+                # args.classes,
+                base_dir=args.pngdir,
                 **common_args
             )
         else:
@@ -356,7 +358,7 @@ def parse_args(args):
         json_data=json.load(json_data_file)
 
     default_snapshot_dir=json_data["SNAPSHOT_DIR"]
-    default_classes_csv=json_data['CLASSES_CSV']
+    default_train_png_dir=json_data["TRAIN_PNG_DIR"]
     default_train_csv=json_data["TRAIN_CSV"]
     default_val_csv=json_data["VAL_CSV"]
 
@@ -387,8 +389,9 @@ def parse_args(args):
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('--annotations', help='Path to CSV file containing annotations for training.', default=default_train_csv)
-    csv_parser.add_argument('--classes', help='Path to a CSV file containing class label mapping.', default=default_classes_csv)
+    # csv_parser.add_argument('--classes', help='Path to a CSV file containing class label mapping.', default=default_classes_csv)
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation.', default=default_val_csv)
+    csv_parser.add_argument('--pngdir', help='PNG file directory.', default=default_train_png_dir)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
@@ -434,9 +437,11 @@ def main(args=None):
     keras.backend.tensorflow_backend.set_session(get_session())
 
     # create the generators
+    print('[Info] Creating the generators...')
     train_generator, validation_generator = create_generators(args, backbone.preprocess_image)
 
     # create the model
+    print('[Info] Creating the model...')
     if args.snapshot is not None:
         print('Loading model, this may take a second...')
         model            = models.load_model(args.snapshot, backbone_name=args.backbone)
@@ -476,6 +481,7 @@ def main(args=None):
     )
 
     # start training
+    print('[Info] Start training...')
     history=training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=args.steps,
