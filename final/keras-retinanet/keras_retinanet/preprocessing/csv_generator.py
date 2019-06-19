@@ -176,15 +176,15 @@ class CSVGenerator(Generator):
         """
         return 2
 
-    def name_to_label(self, name):
-        """ Map name to label.
-        """
-        return self.classes[name]
+    # def name_to_label(self, name):
+    #     """ Map name to label.
+    #     """
+    #     return self.classes[name]
 
-    def label_to_name(self, label):
-        """ Map label to name.
-        """
-        return self.labels[label]
+    # def label_to_name(self, label):
+    #     """ Map label to name.
+    #     """
+    #     return self.labels[label]
 
     def image_path(self, image_index):
         """ Returns the image path for image_index.
