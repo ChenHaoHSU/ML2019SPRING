@@ -1,0 +1,7 @@
+{
+"TRAIN_LABELS": "../data/strain_labels.csv",
+"TRAIN_PNG_DIR": "../data/train",
+"TEST_PNG_DIR": "../data/test",
+"TRAIN_METADATA": "../data/train_metadata.csv",
+"TEST_METADATA": "../data/test_metadata.csv"
+}
