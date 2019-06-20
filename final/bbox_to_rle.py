@@ -22,7 +22,7 @@ if len(sys.argv) != 2:
 
 id = sys.argv[1]
 bbox_fpath = f'bbox{id}.csv'
-rle_fpath = f'rel{id}.csv'
+rle_fpath = f'rle{id}.csv'
 submission_dir = json_data["SUBMISSION_DIR"]
 test_png_dir = json_data["TEST_PNG_DIR"]
 
