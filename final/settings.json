@@ -7,6 +7,6 @@
 "SNAPSHOT_DIR": "./snapshots/",
 "TRAIN_CSV": "../data/final/train_labels.csv",
 "VAL_CSV": "../data/final/train_labels.csv",
-"MODEL_50":"./resnet50_csv_10.h5",
+"MODEL_50":"./models/resnet50_csv_10.h5",
 "SUBMISSION_DIR":"./submission"
 }

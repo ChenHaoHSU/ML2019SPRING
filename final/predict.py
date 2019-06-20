@@ -63,11 +63,11 @@ start = time.time()
 # decide output filename
 output_fpath = ''
 for i in range(1000):
-    output_fpath = 'pred{}.csv'.format(i)
+    output_fpath = os.path.join(submission_dir, f'bbox{i}.csv')
     if not os.path.exists(output_fpath):
         break
-output_fpath = os.path.join(submission_dir, output_fpath)
 f = open(output_fpath, "w")
+print(f'[Info] File Name: {output_fpath}')
 
 for i in range(4998):
     png_name = 'test{:04d}.png'.format(i)

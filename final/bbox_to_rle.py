@@ -9,12 +9,26 @@ Only rle format file is compatable for submitting to Kaggle competition
 '''
 
 import sys, os
-
+import json
 from PIL import ImageFile
 
-IN_CSV = "./submission/pred0.csv"
-OUT_CSV = "./rle0.csv"
-IMG_DIR = "../data/final/test" # read image for calculating images' shape
+with open('settings.json') as json_data_file:
+    json_data=json.load(json_data_file)
+
+if len(sys.argv) != 2:
+    print("Usage: python3 bbox_to_rle.py [idx]")
+    print("Example: python3 bbox_to_rle.py 0      (Convert bbox0.csv into rle0.csv)")
+    sys.exit()
+
+id = sys.argv[1]
+bbox_fpath = f'bbox{id}.csv'
+rle_fpath = f'rel{id}.csv'
+submission_dir = json_data["SUBMISSION_DIR"]
+test_png_dir = json_data["TEST_PNG_DIR"]
+
+IN_CSV = os.path.join(submission_dir, bbox_fpath)
+OUT_CSV = os.path.join(submission_dir, rle_fpath)
+IMG_DIR = test_png_dir # read image for calculating images' shape
 
 def main():    
     
