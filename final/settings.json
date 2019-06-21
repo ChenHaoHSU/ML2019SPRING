@@ -7,6 +7,10 @@
 "SNAPSHOT_DIR": "./snapshots/",
 "TRAIN_CSV": "../data/final/train_labels.csv",
 "VAL_CSV": "../data/final/train_labels.csv",
-"MODEL_50":"./models/kaggle23456.h5",
+"MODEL_DIR":"./models",
+"MODELS":
+    [
+        {"name":"kaggle23456.h5", "backbone":"resnet50"}
+    ],
 "SUBMISSION_DIR":"./submission"
 }
