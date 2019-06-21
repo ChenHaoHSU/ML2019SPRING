@@ -10,7 +10,7 @@
 "MODEL_DIR":"./models",
 "MODELS":
     [
-        {"name":"kaggle23456.h5", "backbone":"resnet50"}
+        {"name":"resnet50_csv_20.h5", "backbone":"resnet50"}
     ],
 "SUBMISSION_DIR":"./submission"
 }
