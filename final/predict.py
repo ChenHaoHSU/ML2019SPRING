@@ -66,13 +66,12 @@ model_dir = json_data["MODEL_DIR"]
 model_data = json_data["MODELS"]
 models = []
 for model_datum in model_data:
+    print(f'   - {model_datum["name"]}, {model_datum["backbone"]}')
     model_fpath = os.path.join(model_dir, model_datum["name"])
     model = load_model(model_fpath, backbone_name=model_datum["backbone"])
     model = convert_model(model, nms=False)
     models.append(model)
 print('[Info] Models loaded!')
-for model_datum in model_data:
-    print(f'   - {model_datum["name"]}, {model_datum["backbone"]}')
 
 for i in range(4998):
     png_name = 'test{:04d}.png'.format(i)
@@ -97,11 +96,8 @@ for i in range(4998):
     # boxes_pred = np.concatenate((boxes_pred1, boxes_pred2))
     # scores = np.concatenate((scores1, scores2))
 
-    boxes_pred_np = np.array(boxes_pred_list)
-    scores_np = np.array(scores_list)
-
-    boxes_pred_np = np.squeeze(boxes_pred_np, axis=0)
-    scores_np = np.squeeze(scores_np, axis=0)
+    boxes_pred_np = np.concatenate(boxes_pred_list, axis=0)
+    scores_np = np.concatenate(scores_list, axis=0)
 
     boxes_pred_np, scores_np = util.averages(
         boxes_pred_np, scores_np, wt_overlap, solo_min)
