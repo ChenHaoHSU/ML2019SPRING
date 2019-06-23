@@ -24,9 +24,6 @@ with open('settings.json') as json_data_file:
     json_data = json.load(json_data_file)
     
 
-# model2_path = json_data["MODEL_101"]
-# model2 = models.load_model(model2_path, backbone_name='resnet101', convert=True, nms=False)
-
 test_jpg_dir = json_data["TEST_PNG_DIR"]
 submission_dir = json_data["SUBMISSION_DIR"]
 
@@ -93,9 +90,6 @@ for i in range(4998):
         boxes_pred_list.append(boxes_pred)
         scores_list.append(scores)
 
-    # boxes_pred = np.concatenate((boxes_pred1, boxes_pred2))
-    # scores = np.concatenate((scores1, scores2))
-
     boxes_pred_np = np.concatenate(boxes_pred_list, axis=0)
     scores_np = np.concatenate(scores_list, axis=0)
 
@@ -103,14 +97,12 @@ for i in range(4998):
         boxes_pred_np, scores_np, wt_overlap, solo_min)
     util.shrink(boxes_pred_np, shrink_factor)
 
-    # output = ''
     hasBbox = False
     for j, bb in enumerate(boxes_pred_np):
         x1 = int(bb[0])
         y1 = int(bb[1])
         w = int(bb[2]-x1+1)
         h = int(bb[3]-y1+1)
-        # output += f'{scores[j]:.3f} {x1} {y1} {w} {h} '
         f.write(f'{png_name},{x1},{y1},{w},{h},1\n')
         hasBbox = True
     if hasBbox == False:
