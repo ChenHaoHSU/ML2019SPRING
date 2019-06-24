@@ -1,7 +1,10 @@
 # Machine Learning Final Project (2019, Spring)
-RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 **by NTU_r07943107_**
+
+RSNA Pneumonia Detection Challenge (DeepQ Challenge)
+
+Kaggle: [link](https://www.kaggle.com/c/ml2019spring-final-deepq/overview).
 
 ## Directory Structure
 
