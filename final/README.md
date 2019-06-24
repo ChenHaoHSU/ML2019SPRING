@@ -1,9 +1,9 @@
-## Machine Learning Final Project (2019, Spring)
+# Machine Learning Final Project (2019, Spring)
 RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 **by NTU_r07943107_**
 
-# Directory Structure
+## Directory Structure
 
 - `src/`: folder of source code including all `.py` files
 - `requirements.txt`: python3 package requirements. Please try to install all the packages listed.
@@ -16,7 +16,7 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 - `settings.json`: json file for all file path settings.
 - `report.pdf`: report.
 
-# Software 
+## Software 
 (python3 packages are detailed separately in `requirements.txt`):
 
 - Python 3.6.x (required)
@@ -25,7 +25,7 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 - cuDNN 7.0.5 (optional)
 - NVIDIA driver v.390.116 (optional)
 
-# Data and Keras-retinanet Setup
+## Data and Keras-retinanet Setup
 
 - **Data setup**: Run the following shell commands from the top level directory
 ```
@@ -46,7 +46,7 @@ python3 setup.py build_ext --inplace
 cd ../../
 ```
 
-# Model Training
+## Model Training
 
 There are three different RetinaNets used as backbones in our solution, which are trained by the following scripts.
 
@@ -67,7 +67,7 @@ bash ./train_152.sh
 
 Snapshots after each epoch of training are saved in `snapshots/`.
 
-# Prediction
+## Prediction
 
 Move the inference models to `models/` and modify "MODELS" in `settings.json`. Then, run the following command. 
 
@@ -81,7 +81,7 @@ Example:
 
 Prediction is saved to `prediction_path` in run-length encoding (RLE) format.
 
-# Reproduce
+## Reproduce
 
 To reproduce the result on kaggle, run the following command.
 
