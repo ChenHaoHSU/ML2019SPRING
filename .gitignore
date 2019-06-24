@@ -12,6 +12,7 @@ hw4/output/*
 !hw5/labels.csv
 *.model
 *.h5
+*.h5.old
 *.pt
 *.bbox
 hw7/*.npy
