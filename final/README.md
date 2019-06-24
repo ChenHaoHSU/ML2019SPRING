@@ -13,6 +13,8 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 - `train_152.sh`: script to train model with Resnet152 as backbone.
 - `test.sh`: script to make inferences. Before making any inferences, please make sure that the environments are set up properly.
 - `reproduce.sh`: script to reproduce the result on kaggle.
+- `settings.json`: json file for all file path settings.
+- `report.pdf`: report.
 
 # Software 
 (python3 packages are detailed separately in `requirements.txt`):
@@ -50,17 +52,17 @@ There are three different RetinaNets used as backbones in our solution, which ar
 
 - Use Resnet-50 as backbone:
 ```
-bash ./train50.sh
+bash ./train_50.sh
 ```
 
 - Use Resnet-101 as backbone:
 ```
-bash ./train101.sh
+bash ./train_101.sh
 ```
 
 - Use Resnet-152 as backbone:
 ```
-bash ./train152.sh
+bash ./train_152.sh
 ```
 
 Snapshots after each epoch of training are saved in `snapshots/`.
