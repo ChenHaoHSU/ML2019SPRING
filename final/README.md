@@ -3,15 +3,16 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 **by NTU_r07943107_**
 
-# Directory structure
+# Directory Structure
 
-- `src/`: folder of source codes including all .py files
+- `src/`: folder of source code including all `.py` files
 - `requirements.txt`: python3 package requirements. Please try to install all the packages listed.
-- `data_setup.py`: script to set up the environments for dataset, not packages.
+- `data_setup.sh`: script to set up the environments for dataset, not packages.
 - `train_50.sh`: script to train model with Resnet50 as backbone.
 - `train_101.sh`: script to train model with Resnet101 as backbone.
 - `train_152.sh`: script to train model with Resnet152 as backbone.
 - `test.sh`: script to make inferences. Before making any inferences, please make sure that the environments are set up properly.
+- `reproduce.sh`: script to reproduce the result on kaggle.
 
 # Software 
 (python3 packages are detailed separately in `requirements.txt`):
@@ -22,16 +23,16 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 - cuDNN 7.0.5 (optional)
 - NVIDIA driver v.390.116 (optional)
 
-# Data and keras-retinanet setup
+# Data and Keras-retinanet Setup
 
 - **Data setup**: Run the following shell commands from the top level directory
 ```
-python3 data_setup.py  [train_png_dir]  [test_png_dir]  [train_label_csv]  [train_metadata_csv]  [test_metadata_csv]
+bash ./data_setup.sh  [train_png_dir]  [test_png_dir]  [train_label_csv]  [train_metadata_csv]  [test_metadata_csv]
 ```
 
 Example:
 ```
-python3 data_setup.py ./data/train ./data/test ./data/train_labels.csv ./data/train_metadata.csv ./data/test_metadata.csv
+bash ./data_setup.sh ./data/train ./data/test ./data/train_labels.csv ./data/train_metadata.csv ./data/test_metadata.csv
 ```
 
 `settings.json` should be well configured after running the above command.
@@ -62,9 +63,11 @@ bash ./train101.sh
 bash ./train152.sh
 ```
 
-Snapshots after each epoch of training are saved in `src/snapshots/`.
+Snapshots after each epoch of training are saved in `snapshots/`.
 
 # Prediction
+
+Move the inference models to `models/` and modify "MODELS" in `settings.json`. Then, run the following command. 
 
 Usage:
 
@@ -73,5 +76,19 @@ Usage:
 Example:
 
 	bash ./test.sh prediction.csv
+
+Prediction is saved to `prediction_path` in run-length encoding (RLE) format.
+
+# Reproduce
+
+To reproduce the result on kaggle, run the following command.
+
+Usage:
+
+	bash ./reproduce.sh [prediction_path]
+
+Example:
+
+	bash ./reproduce.sh prediction.csv
 
 Prediction is saved to `prediction_path` in run-length encoding (RLE) format.

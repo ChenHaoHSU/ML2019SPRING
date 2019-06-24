@@ -13,6 +13,5 @@
             "name": "resnet50_csv_23.h5",
             "backbone": "resnet50"
         }
-    ],
-    "SUBMISSION_DIR": "./submission"
+    ]
 }
