@@ -34,6 +34,8 @@ Example:
 python3 data_setup.py ./data/train ./data/test ./data/train_labels.csv ./data/train_metadata.csv ./data/test_metadata.csv
 ```
 
+`settings.json` should be well configured after running the above command.
+
 - **Keras-retinanet setup**: Run the following shell commands from the top level directory
 ```
 cd src/keras-retinanet
@@ -41,26 +43,23 @@ python3 setup.py build_ext --inplace
 cd ../../
 ```
 
-
-Note that `settings.json` is configured for creating training and validation sets from the Stage 1 training labels, which are what I used to train the models for the competition.  I did not perform any training on the Stage 2 training set, which included Stage 1 test images.
-
 # Model Training
 
 There are three different RetinaNets used as backbones in our solution, which are trained by the following scripts.
 
-- Use Resnet50 as backbone:
+- Use Resnet-50 as backbone:
 ```
-./train50.sh
-```
-
-- Use Resnet101 as backbone:
-```
-./train101.sh
+bash ./train50.sh
 ```
 
-- Use Resnet152 as backbone:
+- Use Resnet-101 as backbone:
 ```
-./train152.sh
+bash ./train101.sh
+```
+
+- Use Resnet-152 as backbone:
+```
+bash ./train152.sh
 ```
 
 Snapshots after each epoch of training are saved in `src/snapshots/`.
@@ -69,10 +68,10 @@ Snapshots after each epoch of training are saved in `src/snapshots/`.
 
 Usage:
 
-	./test.sh [prediction_path]
+	bash ./test.sh [prediction_path]
 
 Example:
 
-	./test.sh prediction.csv
+	bash ./test.sh prediction.csv
 
 Prediction is saved to `prediction_path` in run-length encoding (RLE) format.
