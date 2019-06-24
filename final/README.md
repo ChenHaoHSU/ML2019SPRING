@@ -1,5 +1,5 @@
 ## Machine Learning Final Project (2019, Spring)
-## RSNA Pneumonia Detection Challenge (DeepQ Challenge)
+RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 **by NTU_r07943107_**
 
@@ -17,7 +17,7 @@
 # Software 
 (python3 packages are detailed separately in `requirements.txt`):
 
-- `Python 3.6.x` (required)
+- Python 3.6.x (required)
 - Ubuntu 18.04 LTS or CentOS 7 (optional)
 - CUDA 9.0 (optional)
 - cuDNN 7.0.5 (optional)
