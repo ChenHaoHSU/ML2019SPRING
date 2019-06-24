@@ -24,15 +24,15 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 # Data and keras-retinanet setup
 
-1. **Keras-retinanet setup**: Run the following shell commands from the top level directory
+- **Keras-retinanet setup**: Run the following shell commands from the top level directory
 
 	python3 data_setup.py [train_png_dir] [test_png_dir] [train_label_csv] [train_metadata_csv] [test_metadata_csv]
 
 Example:
 
 	python3 data_setup.py ./data/train ./data/test ./data/train_labels.csv ./data/train_metadata.csv ./data/test_metadata.csv
-	
-2. **Keras-retinanet setup**: Run the following shell commands from the top level directory
+
+- **Keras-retinanet setup**: Run the following shell commands from the top level directory
 
 	cd keras-retinanet
 	python3 setup.py build_ext --inplace
@@ -45,21 +45,21 @@ Note that `settings.json` is configured for creating training and validation set
 
 There are three different RetinaNets used as backbones in our solution, which are trained by the following scripts.
 
-1. Use Resnet50:
+- Use Resnet50 as backbone:
 
 	./train50.sh
 
-2. Use Resnet101:
+- Use Resnet101 as backbone:
 
 	./train101.sh
 
-3. Use Resnet152:
+- Use Resnet152 as backbone:
 
 	./train152.sh
 
 Snapshots after each epoch of training are saved in `src/snapshots/`.
 
-# Making Prediction
+# Prediction
 
 Usage:
 
