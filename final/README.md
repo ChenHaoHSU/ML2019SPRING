@@ -5,8 +5,8 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 # Directory structure
 
-- `src`: folder of source codes including all .py files
-- `requirements`: python3 package requirements. Please try to install all the packages listed.
+- `src/`: folder of source codes including all .py files
+- `requirements.txt`: python3 package requirements. Please try to install all the packages listed.
 - `data_setup.py`: script to set up the environments for dataset, not packages.
 - `train_50.sh`: script to train model with Resnet50 as backbone.
 - `train_101.sh`: script to train model with Resnet101 as backbone.

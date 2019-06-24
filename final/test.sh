@@ -1,4 +1,3 @@
 #!/bin/bash
-cd src/
+python3 src/predict.py $1
 
-cd ..
