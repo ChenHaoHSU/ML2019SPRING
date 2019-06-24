@@ -46,16 +46,20 @@ Note that `settings.json` is configured for creating training and validation set
 There are three different RetinaNets used as backbones in our solution, which are trained by the following scripts.
 
 - Use Resnet50 as backbone:
-
+```
 	./train50.sh
+```
 
 - Use Resnet101 as backbone:
-
+```
 	./train101.sh
 
-- Use Resnet152 as backbone:
+```
 
+- Use Resnet152 as backbone:
+```
 	./train152.sh
+```
 
 Snapshots after each epoch of training are saved in `src/snapshots/`.
 
@@ -63,10 +67,10 @@ Snapshots after each epoch of training are saved in `src/snapshots/`.
 
 Usage:
 
-	python3 predict.py [prediction_path]
+	./test.sh [prediction_path]
 
 Example:
 
-	python3 predict.py prediction.csv
+	./test.sh prediction.csv
 
 Prediction is saved to `prediction_path` in run-length encoding (RLE) format.
