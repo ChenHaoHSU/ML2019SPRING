@@ -7,11 +7,11 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 - `src`: folder of source codes including all .py files
 - `requirements`: python3 package requirements. Please try to install all the packages listed.
-- `setup.sh`: set up the environments for dataset, not packages.
-- `train_50.sh`: perform training. Use resnet50 for the backbone.
-- `train_101.sh`: perform training. Use resnet101 for the backbone.
-- `train_152.sh`: perform training. Use resnet152 for the backbone.
-- `test.sh`: make inferences. Before making any inferences, please make sure that the environments are set up properly.
+- `data_setup.py`: script to set up the environments for dataset, not packages.
+- `train_50.sh`: script to train model with Resnet50 as backbone.
+- `train_101.sh`: script to train model with Resnet101 as backbone.
+- `train_152.sh`: script to train model with Resnet152 as backbone.
+- `test.sh`: script to make inferences. Before making any inferences, please make sure that the environments are set up properly.
 
 # Software 
 (python3 packages are detailed separately in `requirements.txt`):
@@ -24,21 +24,21 @@ RSNA Pneumonia Detection Challenge (DeepQ Challenge)
 
 # Data and keras-retinanet setup
 
-- **Keras-retinanet setup**: Run the following shell commands from the top level directory
+- **Data setup**: Run the following shell commands from the top level directory
 ```
-python3 data_setup.py [train_png_dir] [test_png_dir] [train_label_csv] [train_metadata_csv] [test_metadata_csv]
+python3 data_setup.py  [train_png_dir]  [test_png_dir]  [train_label_csv]  [train_metadata_csv]  [test_metadata_csv]
 ```
 
 Example:
 ```
-	python3 data_setup.py ./data/train ./data/test ./data/train_labels.csv ./data/train_metadata.csv ./data/test_metadata.csv
+python3 data_setup.py ./data/train ./data/test ./data/train_labels.csv ./data/train_metadata.csv ./data/test_metadata.csv
 ```
 
 - **Keras-retinanet setup**: Run the following shell commands from the top level directory
 ```
-cd keras-retinanet
+cd src/keras-retinanet
 python3 setup.py build_ext --inplace
-cd ..
+cd ../../
 ```
 
 
