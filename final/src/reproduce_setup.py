@@ -2,7 +2,7 @@ import sys, os
 import json
 
 model_dir = "./models"
-models = [{"name": "resnet50_csv_23.h5", "backbone": "resnet50"}]
+models = [{"name": "kaggle28161.h5", "backbone": "resnet50"}]
 
 settings_fpath = 'settings.json'
 
