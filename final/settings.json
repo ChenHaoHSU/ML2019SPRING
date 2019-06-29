@@ -3,7 +3,7 @@
     "TRAIN_PNG_DIR": "../data/final/train",
     "TEST_PNG_DIR": "../data/final/test",
     "TRAIN_METADATA": "../data/final/train_metadata.csv",
-    "TEST_METADATA": "../data/final/test_metadate.csv",
+    "TEST_METADATA": "../data/final/test_metadata.csv",
     "SNAPSHOT_DIR": "./snapshots/",
     "TRAIN_CSV": "../data/final/train_labels.csv",
     "VAL_CSV": "../data/final/train_labels.csv",
