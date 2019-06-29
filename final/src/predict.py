@@ -18,7 +18,11 @@ import util
 # which includes a score metric to estimate the RSNA score
 # at the threshold giving the maximum Youden index.
 sys.path.append("keras-retinanet")
-from keras_retinanet.models import load_model, convert_model
+
+try:
+    from keras_retinanet.models import load_model, convert_model
+except:
+    from keras_retinanet.models import load_model
 
 with open('settings.json') as json_data_file:
     json_data = json.load(json_data_file)
@@ -55,8 +59,13 @@ model_data = json_data["MODELS"]
 models = []
 for model_datum in model_data:
     model_fpath = os.path.join(model_dir, model_datum["name"])
-    model = load_model(model_fpath, backbone_name=model_datum["backbone"])
-    model = convert_model(model, nms=False)
+    
+    try:
+        model = load_model(model_fpath, backbone_name=model_datum["backbone"])
+        model = convert_model(model, nms=False)
+    except:
+        model = load_model(model_fpath, backbone_name=model_datum["backbone"], convert=True, nms=False)
+
     models.append(model)
 print('[Info] Models loaded!')
 for model_datum in model_data:

@@ -10,7 +10,7 @@
     "MODEL_DIR": "./models",
     "MODELS": [
         {
-            "name": "kaggle28161.h5",
+            "name": "kaggle27544.h5",
             "backbone": "resnet50"
         }
     ]
