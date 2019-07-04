@@ -1,2 +1,3 @@
 # ML2019Spring
-2019 NTU Machine Learning Course
+Machine Learning (Spring, 2019)
+Lecture: Prof. Hung-Yi Lee, National Taiwan University
