@@ -55,7 +55,7 @@ olefile==0.45.1
 opencv-python==4.1.0.25
 pandas==0.24.2
 pexpect==4.2.1
-Pillow==6.0.0
+Pillow==6.2.0
 progressbar2==3.39.3
 protobuf==3.7.1
 pycairo==1.16.2
